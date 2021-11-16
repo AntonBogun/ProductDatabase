@@ -1,0 +1,57 @@
+1. Recycler view code
+Includes android:id, tools:listitem
+
+2. Recycler layout code
+Name = tools:listitem,
+Elements:: android:hint="@+id/NAME"
+
+3. Adapter code
+adapter name=aname
+viewholder name = vname
+
+public class aname extends RecyclerView.Adapter<aname.vname> {
+    Context context;
+    //note that list is the default behaviour, and can be customized
+    ArrayList<Integer> list = new ArrayList<Integer>();
+
+
+    public class vname extends RecyclerView.ViewHolder implements View.OnClickListener{
+        /properties a holder needs to have\
+
+        public vname(@NonNull View itemView) {
+            super(itemView);
+            /get items a holder should have by R.id\
+            /set any onClickListeners with *this*\
+        }
+
+        /setters for properties\
+        @Override
+        public void onClick(View v){ //may be disabled if not required
+            ((/caller name\)context)./function in caller\(v, /arguments, like *getLayoutPosition()*\);
+        }
+    }
+    public aname(Context context, /properties\){
+    this.context=context;
+    /set properties\
+    }
+
+    public void resetReference(/properties to re-set\){ //useful for when want to save info, as reference may die
+    /re-set properties\
+    }
+
+
+    @Override //may be changed to define a custom behaviour
+    public int getItemCount() { return list == null ? 0 : list.size(); }
+
+    @Override
+    public vname onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(context).inflate(R.layout.recycle_view, parent, false);
+        return new vname(view);
+    }
+
+    @Override
+    public void onBindViewHolder(@NonNull vname holder, int position) {
+        Integer i = list.get(position); //may be changed to define a custom behaviour
+        /set properties in the vname holder\
+    }
+}
