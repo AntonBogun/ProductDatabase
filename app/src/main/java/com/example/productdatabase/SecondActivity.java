@@ -126,7 +126,7 @@ public class SecondActivity extends AppCompatActivity{
         if (data!=""){
             Log.e(R.class.getName(),data);
         }
-
+        
         EditText txt=findViewById(R.id.textView2);
         textwatch txtwatch=new textwatch();
         //txt.addTextChangedListener(txtwatch);

@@ -25,14 +25,14 @@
      showgrid="false"
      inkscape:snap-bbox="true"
      inkscape:zoom="0.7071068"
-     inkscape:cx="362.74577"
-     inkscape:cy="605.28339"
+     inkscape:cx="501.33869"
+     inkscape:cy="533.1585"
      inkscape:window-width="1920"
      inkscape:window-height="974"
      inkscape:window-x="-9"
      inkscape:window-y="-9"
      inkscape:window-maximized="1"
-     inkscape:current-layer="layer2" />
+     inkscape:current-layer="layer6" />
   <defs
      id="defs2" />
   <g
@@ -41,7 +41,7 @@
      inkscape:label="Layer 5">
     <path
        sodipodi:type="star"
-       style="display:inline;fill:#44b782;fill-opacity:1;fill-rule:evenodd"
+       style="display:inline;fill:#ffffff;fill-opacity:1;fill-rule:evenodd"
        id="path221"
        inkscape:flatsided="true"
        sodipodi:sides="5"
@@ -58,23 +58,23 @@
        inkscape:transform-center-x="3.719397e-05"
        inkscape:transform-center-y="-8.7875522" />
     <path
-       style="fill:#447e8c;fill-opacity:1;stroke-width:0.20966"
+       style="fill:#000000;fill-opacity:1;stroke-width:0.20966"
        d="m 19.829601,117.34955 c 0.469613,-0.43983 84.009069,-61.053154 84.064629,-60.994374 0.0338,0.03572 -6.207711,9.132571 -13.869954,20.215223 L 76.092922,96.72066 48.034848,107.12838 c -15.431942,5.72423 -28.136005,10.40772 -28.231249,10.40772 -0.09525,0 -0.08355,-0.084 0.026,-0.18655 z"
        id="path19470" />
     <path
-       style="fill:#447e8c;fill-opacity:1;stroke-width:0.20966"
+       style="fill:#000000;fill-opacity:1;stroke-width:0.20966"
        d="M 34.444431,169.81279 C 25.538946,142.40264 18.28973,119.93907 18.335063,119.89373 c 0.06078,-0.0609 19.874046,18.83426 27.975778,26.67928 l 0.703524,0.68123 1.861881,36.03595 c 1.024036,19.81976 1.838957,36.10868 1.810929,36.1976 -0.028,0.0889 -7.337265,-22.26483 -16.242744,-49.675 z"
        id="path29181" />
     <path
-       style="fill:#447e8c;fill-opacity:1;stroke-width:0.20966"
+       style="fill:#000000;fill-opacity:1;stroke-width:0.20966"
        d="m 52.443687,221.43524 c 0.209959,-0.20994 52.523303,-23.62399 52.811963,-23.63721 0.27677,-0.0127 52.56016,23.38541 52.80728,23.63252 0.0534,0.0534 -23.70994,0.097 -52.80728,0.097 -29.097344,0 -52.862726,-0.0415 -52.811963,-0.0922 z"
        id="path29220" />
     <path
-       style="fill:#447e8c;fill-opacity:1;stroke-width:0.20966"
+       style="fill:#000000;fill-opacity:1;stroke-width:0.20966"
        d="m 159.86399,217.8585 c 0.0546,-1.03783 0.86224,-17.02964 1.79483,-35.53741 0.9326,-18.50776 1.74189,-33.95691 1.79843,-34.33147 0.0872,-0.57792 2.26316,-2.76225 14.37185,-14.4275 7.84798,-7.56058 14.3041,-13.71144 14.34693,-13.6686 0.0702,0.0702 -31.70441,98.07888 -32.20229,99.32776 -0.15297,0.38371 -0.18238,0.0185 -0.10975,-1.36278 z"
        id="path29259" />
     <path
-       style="fill:#447e8c;fill-opacity:1;stroke-width:0.20966"
+       style="fill:#000000;fill-opacity:1;stroke-width:0.20966"
        d="M 163.12187,107.39533 C 148.18883,101.84421 135.61795,97.1612 135.1866,96.98863 134.47849,96.70535 133.05012,94.72073 120.475,76.547958 112.81496,65.478145 106.57723,56.391456 106.61337,56.355313 c 0.0594,-0.05946 83.59869,60.549397 84.06834,60.992757 0.12267,0.11585 0.0825,0.17883 -0.10476,0.16411 -0.16719,-0.0127 -12.52196,-4.56573 -27.455,-10.11685 z"
        id="path29298" />
   </g>
@@ -175,7 +175,7 @@
      style="display:inline">
     <path
        sodipodi:type="star"
-       style="display:inline;fill:#46aa86;fill-opacity:1"
+       style="display:inline;fill:#eaa221;fill-opacity:1"
        id="path4465"
        inkscape:flatsided="true"
        sodipodi:sides="6"
@@ -198,11 +198,11 @@
      inkscape:label="Layer 6"
      style="display:inline">
     <path
-       style="fill:#63adff;fill-opacity:1;stroke-width:0.148252"
+       style="fill:#3dd6ee;fill-opacity:1;stroke-width:0.148252"
        d="m 47.91468,146.77656 c 0,-0.27138 28.377542,-49.11867 28.476245,-49.0172 0.09035,0.0929 26.096105,45.16054 27.892515,48.33738 l 0.44012,0.77832 H 76.319121 c -15.622445,0 -28.404441,-0.0444 -28.404441,-0.0986 z"
        id="path12069" />
     <path
-       style="fill:#63adff;fill-opacity:1;stroke-width:0.148252"
+       style="fill:#3dd6ee;fill-opacity:1;stroke-width:0.148252"
        d="m 119.94243,172.07337 -14.17941,-24.6053 h 28.46151 28.4615 l -0.29086,0.48181 c -0.15996,0.26501 -6.51408,11.25606 -14.12026,24.42455 -7.60617,13.1685 -13.90222,24.02407 -13.99123,24.12347 -0.12103,0.13518 -3.73613,-6.02165 -14.34125,-24.42453 z"
        id="path14365" />
     <path
