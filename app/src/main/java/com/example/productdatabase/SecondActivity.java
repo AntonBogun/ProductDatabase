@@ -3,6 +3,7 @@ package com.example.productdatabase;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -66,7 +67,8 @@ public class SecondActivity extends AppCompatActivity{
     Context context;
     ArrayList<Integer> l=new ArrayList<Integer>();
     BSAdapter adapter=new BSAdapter(this,l);
-
+    RecyclerView recyclerView;
+    int scroll=0;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         name=getApplicationName(this);
@@ -154,7 +156,7 @@ public class SecondActivity extends AppCompatActivity{
         });
 
 
-        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recyclerview);
+        recyclerView = (RecyclerView) findViewById(R.id.recyclerview);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(adapter);
 
@@ -173,19 +175,28 @@ public class SecondActivity extends AppCompatActivity{
                 adapter.notifyItemInserted(l.size()-1);
                 //Log.d(R.class.getName(),"adapter="+adapter.list.toString());
                 //byte [] e=new byte[8];
+                //recyclerView.smoothScrollToPosition(1);
+                recyclerView.scrollToPosition(3);
+                //CardView c=((BSAdapter.BSView)recyclerView.findViewHolderForAdapterPosition(0)).card;
+                //c.setElevation(c.getCardElevation()+10000000);
+                //Log.e(R.class.getName(),"elev="+c.getCardElevation());
+                View fill=findViewById(R.id.fill);
+                fill.setVisibility((fill.getVisibility()+4)%8);
+                Log.e(R.class.getName(),"vis="+fill.getVisibility());
             }
 
         });
     }
 
     public void onRecyclerClick(View v,int id){
-        //Log.e(R.class.getName(),"Bruh clicked");
+        Log.e(R.class.getName(),"Bruh clicked");
         //Log.d(R.class.getName(),v.toString());
         if (v instanceof TextView){
             TextView txt=(TextView)v;
             Log.e(R.class.getName(), txt.getText()+", id:"+id );//i literally can not
             txt.setText("LMAO");
-
+            scroll=recyclerView.computeVerticalScrollOffset();
+            Log.e(R.class.getName(),"scrol="+scroll);
         }
     }
 //    @Override

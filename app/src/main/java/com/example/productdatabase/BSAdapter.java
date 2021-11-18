@@ -23,16 +23,21 @@ public class BSAdapter extends RecyclerView.Adapter<BSAdapter.BSView> {
 
 
     public class BSView extends RecyclerView.ViewHolder implements View.OnClickListener{
-        CardView card;
+        CardView card1,card2,card3;
         TextView txt1,txt2,txt3;
         public BSView(@NonNull View itemView) {
             super(itemView);
             txt1 = itemView.findViewById(R.id.txt1);
             txt2 = itemView.findViewById(R.id.txt2);
             txt3 = itemView.findViewById(R.id.txt3);
-            txt1.setOnClickListener(this);
-            txt2.setOnClickListener(this);
-            txt3.setOnClickListener(this);
+            card1= itemView.findViewById(R.id.Card1);
+            card1.setOnClickListener(this);
+            card2= itemView.findViewById(R.id.Card1);
+            card2.setOnClickListener(this);
+            card3= itemView.findViewById(R.id.Card1);
+            card3.setOnClickListener(this);
+            //txt2.setOnClickListener(this);
+            //txt3.setOnClickListener(this);
         }
         public void setTxt1(String s){
             this.txt1.setText(s);

@@ -14,13 +14,25 @@ public class Date {
 
 
     static Calendar currentTime = Calendar.getInstance();
-    static SimpleDateFormat dateformat = new SimpleDateFormat("dd-MMMM");
+    static SimpleDateFormat dateformat = new SimpleDateFormat("ss/mm/HH/dd/MM/yyyy<Z");
 
     public static String getDate() {
 
         return dateformat.format(Calendar.getInstance().getTime());
     }
 
+    public static java.util.Date toDate(String s) {
+        try {
+            return dateformat.parse(s);
+
+        }catch(Exception e){
+            e.printStackTrace();
+            return Calendar.getInstance().getTime();
+        }
+    }
+    public static String toString(java.util.Date d){
+        return dateformat.format(d);
+    }
     public static String getDays(String date) {
 
         try {
