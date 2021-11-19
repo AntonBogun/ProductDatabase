@@ -13,6 +13,7 @@
         android:layout_marginTop="16dp"
         android:text="go back"
         android:textAllCaps="false"
+        android:visibility="visible"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.497"
         app:layout_constraintStart_toStartOf="parent"
@@ -46,7 +47,8 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/recyclebutton"
         app:layout_constraintVertical_bias="0.144"
-        tools:listitem="@layout/recycle_view" />
+        tools:listitem="@layout/recycle_view"
+        />
 
     <Button
         android:id="@+id/recyclebutton"
@@ -59,7 +61,7 @@
         app:layout_constraintHorizontal_bias="0.56"
         app:layout_constraintStart_toStartOf="@+id/button2"
         app:layout_constraintTop_toBottomOf="@+id/textView2"
-
+        android:enabled="true"
         />
 
     <androidx.cardview.widget.CardView

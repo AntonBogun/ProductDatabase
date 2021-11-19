@@ -39,11 +39,14 @@ public class aname extends RecyclerView.Adapter<aname.vname> {
     /re-set properties\
     }
 
-
+    @Override //change according to onCreateViewHolder to support multiple view types
+    public int getItemViewType(int position) {
+        return 0;
+    }
     @Override //may be changed to define a custom behaviour
     public int getItemCount() { return list == null ? 0 : list.size(); }
 
-    @Override
+    @Override //change according to getItemViewType to inflate the correct type, would require new "vname"s
     public vname onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(context).inflate(R.layout.recycle_view, parent, false);
         return new vname(view);

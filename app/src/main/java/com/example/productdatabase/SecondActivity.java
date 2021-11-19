@@ -65,8 +65,8 @@ public class SecondActivity extends AppCompatActivity{
     }
     String name;
     Context context;
-    ArrayList<Integer> l=new ArrayList<Integer>();
-    BSAdapter adapter=new BSAdapter(this,l);
+    ArrayList<Object> l=new ArrayList<>();
+    DBAdapter adapter=new DBAdapter(this,l);
     RecyclerView recyclerView;
     int scroll=0;
     @Override
@@ -125,7 +125,7 @@ public class SecondActivity extends AppCompatActivity{
         //Log.e(R.class.getName(),"name="+name);
         IO.store(name,"nowayyy.txt","oh god");
         String data=IO.retrieve(name,"nowayyy.txt");
-        if (data!=""){
+        if (!data.equals("")){
             Log.e(R.class.getName(),data);
         }
         
@@ -170,18 +170,21 @@ public class SecondActivity extends AppCompatActivity{
             public void onClick(View v) {
                 //button.setText("i hate this");
                 Log.e(R.class.getName(),"BUTTON CLICKED");
-                l.add(rng.nextInt(1000000));
+                l.add(String.valueOf(rng.nextInt(1000000)));
                 //Log.d(R.class.getName(),"l="+l.toString());
-                adapter.notifyItemInserted(l.size()-1);
+                //adapter.notifyItemInserted(l.size()-1);
+                //adapter.notifyItemAppend();
+                adapter.notifyDataSetChanged();
                 //Log.d(R.class.getName(),"adapter="+adapter.list.toString());
                 //byte [] e=new byte[8];
                 //recyclerView.smoothScrollToPosition(1);
                 recyclerView.scrollToPosition(3);
+                Log.e(R.class.getName(),l.toString());
                 //CardView c=((BSAdapter.BSView)recyclerView.findViewHolderForAdapterPosition(0)).card;
                 //c.setElevation(c.getCardElevation()+10000000);
                 //Log.e(R.class.getName(),"elev="+c.getCardElevation());
                 View fill=findViewById(R.id.fill);
-                fill.setVisibility((fill.getVisibility()+4)%8);
+                //fill.setVisibility((fill.getVisibility()+4)%8);
                 Log.e(R.class.getName(),"vis="+fill.getVisibility());
             }
 
@@ -189,11 +192,11 @@ public class SecondActivity extends AppCompatActivity{
     }
 
     public void onRecyclerClick(View v,int id){
-        Log.e(R.class.getName(),"Bruh clicked");
+        Log.e(R.class.getName(),"Bruh clicked="+id);
         //Log.d(R.class.getName(),v.toString());
         if (v instanceof TextView){
             TextView txt=(TextView)v;
-            Log.e(R.class.getName(), txt.getText()+", id:"+id );//i literally can not
+            //Log.e(R.class.getName(), txt.getText()+", id:"+id );//i literally can not
             txt.setText("LMAO");
             scroll=recyclerView.computeVerticalScrollOffset();
             Log.e(R.class.getName(),"scrol="+scroll);
