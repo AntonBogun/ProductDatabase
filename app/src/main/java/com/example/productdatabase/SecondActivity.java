@@ -116,8 +116,12 @@ public class SecondActivity extends AppCompatActivity{
 
         l=((Main) getApplication()).global_l;
         adapter.resetListReference(l);
-
-        l.add(((Main) getApplication()).global_i);
+        if(l.size()==0) {
+            for (int n =1;n<61;n++){
+                l.add(n);
+            }
+            //l.add(1);//((Main) getApplication()).global_i
+        }
         adapter.notifyItemInserted(l.size()-1);
 
         Intent change_to_main = new Intent(SecondActivity.this, MainActivity.class);
@@ -168,31 +172,53 @@ public class SecondActivity extends AppCompatActivity{
         {
             @Override
             public void onClick(View v) {
-                //button.setText("i hate this");
-                Log.e(R.class.getName(),"BUTTON CLICKED");
-                l.add(String.valueOf(rng.nextInt(1000000)));
+                //Log.e(R.class.getName(),"BUTTON CLICKED");
+                //l.add(1,String.valueOf(rng.nextInt(1000000)));
+                l.add(l.size()+1);
                 //Log.d(R.class.getName(),"l="+l.toString());
                 //adapter.notifyItemInserted(l.size()-1);
-                //adapter.notifyItemAppend();
-                adapter.notifyDataSetChanged();
-                //Log.d(R.class.getName(),"adapter="+adapter.list.toString());
-                //byte [] e=new byte[8];
-                //recyclerView.smoothScrollToPosition(1);
-                recyclerView.scrollToPosition(3);
-                Log.e(R.class.getName(),l.toString());
+                adapter.notifyDBAppend();
+                //adapter.notifyDBInsert(1);
+
+                //recyclerView.scrollToPosition(3);
+
+                //Log.e(R.class.getName(),l.toString());
+
                 //CardView c=((BSAdapter.BSView)recyclerView.findViewHolderForAdapterPosition(0)).card;
                 //c.setElevation(c.getCardElevation()+10000000);
                 //Log.e(R.class.getName(),"elev="+c.getCardElevation());
-                View fill=findViewById(R.id.fill);
+
+                //View fill=findViewById(R.id.fill);
                 //fill.setVisibility((fill.getVisibility()+4)%8);
-                Log.e(R.class.getName(),"vis="+fill.getVisibility());
+                //Log.e(R.class.getName(),"vis="+fill.getVisibility());
+            }
+
+        });
+        Button removebutton=findViewById(R.id.removebutton);
+        removebutton.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v) {
+                LinearLayoutManager ll=(LinearLayoutManager)recyclerView.getLayoutManager();
+                ll.setStackFromEnd(!ll.getStackFromEnd());
+                ll.setReverseLayout(!ll.getReverseLayout());
+                adapter.setInvert(!adapter.getInvert());
+                //adapter.notifyDBInvert();
+                //Log.e(R.class.getName(),"BUTTON CLICKED");
+                //l.add(String.valueOf(rng.nextInt(1000000)));
+//                if (l.size()!=1) {
+//                    l.remove(1);
+//                }
+//                adapter.notifyDBDelete(1);
             }
 
         });
     }
 
     public void onRecyclerClick(View v,int id){
-        Log.e(R.class.getName(),"Bruh clicked="+id);
+        //Log.e(R.class.getName(),"Bruh clicked="+id);
+        l.remove(id);
+        adapter.notifyDBDelete(id);
         //Log.d(R.class.getName(),v.toString());
         if (v instanceof TextView){
             TextView txt=(TextView)v;
