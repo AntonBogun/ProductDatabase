@@ -12,37 +12,92 @@ import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Comparator;
 
-public class DBAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
-    Context context;
-    ArrayList<Object> list;
-    boolean invert=false;
-    int size=0;
+public class NameDBAdapter extends DBAdapter {
+    //Context context;
+    NamedDB DB;
+
+    public class NamedDB{
+        int rows=1;
+        Class repr;
+
+        Comparator comparator;
+
+        public NamedDB(int rows,Class repr, Comparator comp){
+            this.rows=rows;
+            this.repr=repr;
+            this.comparator=comp;
+        }
+        public class Entry<repr> {
+            Object label;
+            ArrayList<String> list;
+            public Entry(Class repr,Object label, ArrayList<String> list){
+                this.label=(repr) label;
+            }
+        }
+    }
+
+abstract class StringFromType<T>{
+    T element;
+    public StringFromType(T element){
+        this.element=element;
+    }
+    abstract String infoToString();//to be defined in implementation
+
+    public String getString(){
+        return "The objects are of type "+element.getClass().getName()+", in string form="+infoToString();
+    }
+}
+public class IntString extends StringFromType<Integer>{
+    public IntString(int i){
+        super(1);
+    }
+    @Override
+    public String infoToString(){
+        return "number "+this.element;
+    }
+}
+
+
+
+
+    //boolean invert=false;
+    //int size=0;
 
     int row=3;
-    int separate=10;
 
-    public void resetListReference(ArrayList<Object> l){ list=l;}
-    public void setInvert(boolean n){invert=n;}
-    public boolean getInvert(){return invert;}
+    //public void resetListReference(ArrayList<Object> l){ list=l;}
+    //public void setInvert(boolean n){invert=n;}
+    //public boolean getInvert(){return invert;}
 
-    public class DBView extends RecyclerView.ViewHolder{
-        ArrayList<CardView> cards=new ArrayList<>();
-        ArrayList<TextView> txts=new ArrayList<>();
-        LinearLayout linLayout;
-        int active=0;
+    public NameDBAdapter(Context context, ArrayList<Object> l){
+        super(context,l);
+        this.context=context;
+        this.list=l;
+        //setHasStableIds(true);
+    }
+
+    public class NameDBView extends DBView {
+        //ArrayList<CardView> cards=new ArrayList<>();
+        //ArrayList<TextView> txts=new ArrayList<>();
+        //LinearLayout linLayout;
+        //int active=0;
         public class OnClick implements View.OnClickListener{
-            int localpos;
-            DBView db;
-            public OnClick(int pos, DBView db){
-                this.localpos =pos;
+            int posglobal;
+            int poslocal;
+            NameDBView db;
+            public OnClick(int pos1,int pos2, NameDBView db){
+                this.posglobal=pos1;
+                this.poslocal=pos2;
                 this.db=db; }
             @Override
             public void onClick(View v){
-                this.db.onClick(v, localpos); }
+                this.db.onClick(v,posglobal,poslocal); }
         }
-        public DBView(@NonNull View itemView) {
+        public NameDBView(@NonNull View itemView) {
             super(itemView);
             this.linLayout=(LinearLayout) itemView;
             for(int n=0;n<row;n++){
@@ -65,11 +120,11 @@ public class DBAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             }
             this.linLayout.setWeightSum(this.active);
         }
-        public void onClick(View v,int localpos){
+        public void onClick(View v,int globalpos,int localpos){
             int pos=getLayoutPosition();
             pos=invert?pos-size/(separate+1)+(size-1-pos)/(separate+1)
                     :pos-(pos)/(separate+1);
-            ((SecondActivity)context).onRecyclerClick(v, pos*row+localpos);
+            ((SecondActivity)context).onRecyclerClick(v, pos*row+relpos);
         }
     }
     public class Separator extends RecyclerView.ViewHolder{
@@ -80,11 +135,7 @@ public class DBAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         }
         public void setText(String s){this.text.setText(s);}
     }
-    public DBAdapter(Context context,ArrayList<Object> l){
-        this.context=context;
-        this.list=l;
-        //setHasStableIds(true);
-    }
+
 
     public void notifyDBAppend(){
         if(list.size()%row==1){
@@ -138,17 +189,17 @@ public class DBAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         if (viewType==0){
-        LinearLayout linLayout = (LinearLayout)LayoutInflater.from(context).inflate(R.layout.recycle_view, parent, false);
-        for(int n=0;n<row;n++){
-            View view=LayoutInflater.from(context).inflate(R.layout.card_contain, parent, false);
-            LinearLayout.LayoutParams params= new LinearLayout.LayoutParams(view.getLayoutParams());
-            params.weight=1;
-            params.leftMargin=Main.dpToPxi(4,context);
-            params.rightMargin=params.leftMargin;
-            linLayout.addView(view, params);
-        }
-        linLayout.setWeightSum(row);
-        return new DBView(linLayout);
+            LinearLayout linLayout = (LinearLayout)LayoutInflater.from(context).inflate(R.layout.recycle_view, parent, false);
+            for(int n=0;n<row;n++){
+                View view=LayoutInflater.from(context).inflate(R.layout.card_contain, parent, false);
+                LinearLayout.LayoutParams params= new LinearLayout.LayoutParams(view.getLayoutParams());
+                params.weight=1;
+                params.leftMargin=Main.dpToPxi(4,context);
+                params.rightMargin=params.leftMargin;
+                linLayout.addView(view, params);
+            }
+            linLayout.setWeightSum(row);
+            return new NameDBView(linLayout);
         }else{
             View view =LayoutInflater.from(context).inflate(R.layout.separator, parent, false);
             return new Separator(view);
@@ -158,10 +209,10 @@ public class DBAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         getItemCount();
-        if (holder instanceof DBView){
+        if (holder instanceof NameDBView){
             int adjustedpos=invert?position-size/(separate+1)+(size-1-position)/(separate+1)
                     :position-(position)/(separate+1);
-            DBView d=(DBView)holder;
+            NameDBView d=(NameDBView)holder;
             d.updateText(adjustedpos);
         }else{
             ((Separator)holder).setText(String.valueOf(invert?((size-position)/(separate+1))*(row*separate)
