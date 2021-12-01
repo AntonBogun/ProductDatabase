@@ -9,6 +9,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -20,24 +21,51 @@ public class NameDBAdapter extends DBAdapter {
     //Context context;
     NamedDB DB;
 
-    public class NamedDB{
+    public abstract class NamedDB<T>{
         int rows=1;
-        Class repr;
-
-        Comparator comparator;
-
-        public NamedDB(int rows,Class repr, Comparator comp){
-            this.rows=rows;
-            this.repr=repr;
-            this.comparator=comp;
-        }
-        public class Entry<repr> {
-            Object label;
-            ArrayList<String> list;
-            public Entry(Class repr,Object label, ArrayList<String> list){
-                this.label=(repr) label;
+        String format=null;
+        ArrayList<Container<T>> list;
+        Comparator<Container<T>> comparator;
+        public abstract class Container<T1>{
+            T1 info;
+            ArrayList<DBItem> items;
+            String label;
+            public Container(T1 info, ArrayList<DBItem>items) {
+                this.info=info;
+                this.items=items;
+            }
+            public Container(T1 info, ArrayList<DBItem>items,boolean genLabel) {
+                this.info=info;
+                this.items=items;
+                if(genLabel){
+                    getLabel();
+                }
+            }
+            public abstract String _infoToString();
+            public String getLabel(){
+                return getLabel(false);
+            }
+            public String getLabel(boolean b){
+                if (label==null ||b){
+                    label=_infoToString();
+                }
+                return label;
             }
         }
+        public NamedDB(ArrayList<Container<T>> list,int rows, Comparator<Container<T>> comp){
+            this.rows=rows;
+            this.list=list;
+            this.comparator=comp;
+        }
+    }
+    public class IntDB extends NamedDB<Integer>{
+        public class IntContainer extends Container<Integer>{
+            public String _infoToString(){
+                return String.valueOf(info);
+            }
+            public IntContainer(int i,ArrayList<DBItem> items, String label)
+        }
+        public IntDB(ArrayList<>)
     }
 
 abstract class StringFromType<T>{

@@ -21,7 +21,7 @@ public class MainActivity extends AppCompatActivity {
 
         //aaaaaaaaaaa.putExtra("key", value); //Optional parameters
 
-        Log.e(R.class.getName(),Date.getDate());
+        //Log.e(R.class.getName(),Date.getDate());
         //Log.d("lmao", "onCreate: in MAIN");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);

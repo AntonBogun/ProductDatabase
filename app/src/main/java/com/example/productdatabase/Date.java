@@ -1,5 +1,7 @@
 package com.example.productdatabase;
 
+import static java.util.Calendar.getInstance;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.format.DateTimeFormatter;
@@ -13,38 +15,28 @@ import java.util.concurrent.TimeUnit;
 public class Date {
 
 
-    static Calendar currentTime = Calendar.getInstance();
+    static Calendar currentTime = getInstance();
     static SimpleDateFormat dateformat = new SimpleDateFormat("ss/mm/HH/dd/MM/yyyy<Z");
 
-    public static String getDate() {
-
+    public static String getDateS() {
+        //currentTime=getInstance();
+        //Date Calendar.getInstance().getTime();
+        //java.util.Date date=getInstance().getTime();
         return dateformat.format(Calendar.getInstance().getTime());
     }
-
+    public static java.util.Date getDate(){
+        return Calendar.getInstance().getTime();
+    }
     public static java.util.Date toDate(String s) {
         try {
             return dateformat.parse(s);
 
         }catch(Exception e){
             e.printStackTrace();
-            return Calendar.getInstance().getTime();
+            return getInstance().getTime();
         }
     }
     public static String toString(java.util.Date d){
         return dateformat.format(d);
-    }
-    public static String getDays(String date) {
-
-        try {
-            return String.valueOf(TimeUnit.DAYS.convert(dateformat.parse("").getTime() - currentTime.getTimeInMillis(), TimeUnit.DAYS));
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    public static long getHour() {
-
-        return currentTime.get(Calendar.HOUR_OF_DAY);
     }
 }
