@@ -16,78 +16,13 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Comparator;
-
 public class NameDBAdapter extends DBAdapter {
     //Context context;
-    NamedDB DB;
+    Main.IntDB DB;
 
-    public abstract class NamedDB<T>{
-        int rows=1;
-        String format=null;
-        ArrayList<Container<T>> list;
-        Comparator<Container<T>> comparator;
-        public abstract class Container<T1>{
-            T1 info;
-            ArrayList<DBItem> items;
-            String label;
-            public Container(T1 info, ArrayList<DBItem>items) {
-                this.info=info;
-                this.items=items;
-            }
-            public Container(T1 info, ArrayList<DBItem>items,boolean genLabel) {
-                this.info=info;
-                this.items=items;
-                if(genLabel){
-                    getLabel();
-                }
-            }
-            public abstract String _infoToString();
-            public String getLabel(){
-                return getLabel(false);
-            }
-            public String getLabel(boolean b){
-                if (label==null ||b){
-                    label=_infoToString();
-                }
-                return label;
-            }
-        }
-        public NamedDB(ArrayList<Container<T>> list,int rows, Comparator<Container<T>> comp){
-            this.rows=rows;
-            this.list=list;
-            this.comparator=comp;
-        }
-    }
-    public class IntDB extends NamedDB<Integer>{
-        public class IntContainer extends Container<Integer>{
-            public String _infoToString(){
-                return String.valueOf(info);
-            }
-            public IntContainer(int i,ArrayList<DBItem> items, String label)
-        }
-        public IntDB(ArrayList<>)
-    }
 
-abstract class StringFromType<T>{
-    T element;
-    public StringFromType(T element){
-        this.element=element;
-    }
-    abstract String infoToString();//to be defined in implementation
 
-    public String getString(){
-        return "The objects are of type "+element.getClass().getName()+", in string form="+infoToString();
-    }
-}
-public class IntString extends StringFromType<Integer>{
-    public IntString(int i){
-        super(1);
-    }
-    @Override
-    public String infoToString(){
-        return "number "+this.element;
-    }
-}
+
 
 
 
