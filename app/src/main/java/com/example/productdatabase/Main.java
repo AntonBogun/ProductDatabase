@@ -78,6 +78,7 @@ public class Main extends android.app.Application{
             }
             if (label==null){
                 label=format(null);
+                ;
             }
             return label;
         }
@@ -99,10 +100,10 @@ public class Main extends android.app.Application{
             return String.format("%dඞ%sඞ%fඞ%fඞ%sඞ%s",id,name,kcal,gram_per_num,DD.toString(),description);
         }
         public Product(){
-            id=0;
+            id=-1;
             name="";
-            kcal=0;
-            gram_per_num=0;
+            kcal=-1;
+            gram_per_num=-1;
             DD=new DD();
             description="";
         }
@@ -178,6 +179,16 @@ public class Main extends android.app.Application{
                     Comparator.comparingInt(c->c instanceof Integer?(int)c:((Container)c).position));
 //                    new Comparator<Object>(){public int compare(Object a,Object b){ return ((int)a)-((int)b); }});
             return (_pos<0?-1-pos:pos)-1;
+        }
+        public int nearPosSearch(int pos,int offpos){
+            int containpos=containers.get(offpos).position;
+            if (containpos>pos){
+                return offpos-1;
+            }
+            if(containpos<pos && offpos+1<containers.size() && containers.get(offpos+1).position<=pos){
+                return offpos+1;
+            }
+            return offpos;
         }
     }
     public class IntDB<T extends DBItem> extends NamedDB<Integer,T>{

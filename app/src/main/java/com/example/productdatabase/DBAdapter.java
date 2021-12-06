@@ -145,8 +145,8 @@ public class DBAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             params.weight=1;
             params.leftMargin=Main.dpToPxi(4,context);
             params.rightMargin=params.leftMargin;
-            linLayout.addView(view, params);
-        }
+            linLayout.addView(view, params);//IMPORTANT TO ADD WITH PARAMS
+        }//BECAUSE MARGINS AND LAYOUT WEIGHT ARE IGNORED IN INFLATION
         linLayout.setWeightSum(row);
         return new DBView(linLayout);
         }else{

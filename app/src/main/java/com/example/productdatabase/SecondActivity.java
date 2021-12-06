@@ -118,7 +118,7 @@ public class SecondActivity extends AppCompatActivity{
 
         //Log.e(R.class.getName(),"name="+name);
         IO.store(name,"nowayyy.txt","oh god");
-        String data=IO.retrieve(name,"nowayyy.txt");
+        String data=IO.retrieveWholeFile(name,"nowayyy.txt");
         if (!data.equals("")){
             Log.e(R.class.getName(),data);
         }
