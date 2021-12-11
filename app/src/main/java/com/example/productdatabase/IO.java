@@ -6,6 +6,7 @@ import android.util.Log;
 
 
 //import java.io.BufferedReader;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.io.File;
@@ -19,23 +20,71 @@ import java.nio.file.Files;
 import java.util.Iterator;
 
 public class IO {
+    public abstract class ClassListLineWriter<T>{
+        protected FileOutputStream writer;
+        protected abstract String format(T s);
+        public ClassListLineWriter(String dir,String file){
+            try {
+                writer = new FileOutputStream(
+                        new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS+dir),
+                                file));
+            }catch(Exception e){
+                Log.e(R.class.getName(),"WRITER START FAILED::BRUH");
+                e.printStackTrace();
+            }
+        }//i hate java specifically
+        public ClassListLineWriter(String dir,String file,boolean append){
+            try {
+                writer = new FileOutputStream(
+                        new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS+dir),
+                                file), append);
+            }catch(Exception e){
+                Log.e(R.class.getName(),"WRITER START FAILED APPEND::BAD");
+                e.printStackTrace();
+            }
+        }
+        public void close(){
+            try {
+                writer.close();
+            }catch(Exception e) {
+                Log.e(R.class.getName(), "WRITER CLOSE FAILED::wtf xdddddd");
+                e.printStackTrace();
+            }
+        }
+        public void storeClass(@NonNull T c){
+            writeLine(format(c));
+        }
+        public void writeLine(@NonNull String s){
+            try {
+                writer.write((s+"\n").getBytes(StandardCharsets.UTF_8));
 
-
+            }catch(Exception e){
+                Log.e(R.class.getName(),"WRITER LINE FAILED::DEATH");
+                e.printStackTrace();
+            }
+        }
+    }
     public abstract class ClassListLineReader<T> implements Iterable<T>{
         protected RandomAccessFile reader;
         protected abstract boolean isEnd(@Nullable String s);
+        //line = "END"
+        //line="AAMOGUUSSS"
         protected abstract T parse(@Nullable String s);
-        public ClassListLineReader(String file){
+        public ClassListLineReader(String dir,String file){
             try {
-                reader = new RandomAccessFile(file, "r");
+                reader = new RandomAccessFile(
+                        new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS+dir),
+                        file), "r");
             }catch(Exception e){
                 Log.e(R.class.getName(),"READER START FAILED::BRUH");
                 e.printStackTrace();
             }
         }//i hate java specifically
-        public ClassListLineReader(String file,long offset){
+        public ClassListLineReader(String dir,String file,long offset){
             try {
-                reader = new RandomAccessFile(file, "r");
+                reader = new RandomAccessFile(
+                        new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS+dir),
+                                file), "r");
                 reader.seek(offset);
             }catch(Exception e){
                 Log.e(R.class.getName(),"READER START FAILED WITH OFFSET::HMMMM");
@@ -54,11 +103,9 @@ public class IO {
         public void close(){
             try {
                 reader.close();
-                return;
             }catch(Exception e) {
                 Log.e(R.class.getName(), "READER CLOSE FAILED::wtf xdddddd");
                 e.printStackTrace();
-                return;
             }
         }
         protected boolean checked=false;
@@ -68,7 +115,7 @@ public class IO {
             try {
                     next=reader.readLine();
                     if (next==null){ return null; }
-                    next = new String(next.getBytes("ISO-8859-1"),"UTF-8");
+                    next = new String(next.getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8);
                     return next;
             }catch(Exception e){
                 Log.e(R.class.getName(),"READER LINE FAILED::DEATH");
@@ -76,10 +123,11 @@ public class IO {
                 return null;
             }
         }
+        @NonNull
         @Override
         public Iterator<T> iterator(){
-            Iterator<T> iter = new Iterator<T>() {
-                private int index = 0;
+            return new Iterator<T>() {
+                //private int index = 0;
                 @Override
                 public boolean hasNext(){
                     if(!checked){
@@ -91,17 +139,12 @@ public class IO {
                 @Override
                 public T next() {
                     if (checked){
-                        checked=false;
-                        return parse(next);
-                    }
-                    return parse(readLine());
-                }
+                        checked=false; return parse(next); }else{ return parse(readLine()); } }
 //                @Override
 //                public void remove() {
 //                    throw new UnsupportedOperationException();
 //                } //i don't know what this does so it's commented out xd
             };
-            return iter;
         }
     }
     public static void mkdir(String name){
@@ -115,11 +158,11 @@ public class IO {
         store(dir,filename,text,false);
     }
     public static void store(String dir,String filename,String text,boolean append){
-        dir=dir!=""? "/"+dir:dir;
+        dir= !dir.equals("") ? "/"+dir:dir;
         File directory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS+dir);
         File file = new File(directory, filename);
         Log.e(R.class.getName(),"dir"+directory);
-        FileOutputStream outputStream = null;
+        FileOutputStream outputStream;
         try {
             //Log.e(R.class.getName(),"ASDASDASDASD="+directory.mkdirs());
             directory.mkdirs();
@@ -140,10 +183,10 @@ public class IO {
         return retrieveWholeFile("",filename);
     }
     public static String retrieveWholeFile(String dir,String filename) {
-        dir=dir!=""? "/"+dir:dir;
+        dir= !dir.equals("") ? "/"+dir:dir;
         String data = "";
         File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS+dir), filename);
-        FileInputStream inputStream = null;
+        FileInputStream inputStream;
         //StringBuilder text = new StringBuilder();
         try {
 //            if(!file.exists()) {

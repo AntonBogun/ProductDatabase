@@ -3,14 +3,18 @@ package com.example.productdatabase;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.util.DisplayMetrics;
+import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import org.apache.commons.lang3.StringUtils;
 
+import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.regex.*;
 import java.util.stream.Collectors;
 
 public class Main extends android.app.Application{
@@ -43,7 +47,9 @@ public class Main extends android.app.Application{
         SPICE(8,1,"2gram turmenic");//the spice must flow
         final float perday;
         final String desc;
+        final int pos;
         DDConsts(int pos,float perday, String desc){
+            this.pos=pos;
             this.perday=perday;
             this.desc=desc;
         }
@@ -57,12 +63,23 @@ public class Main extends android.app.Application{
 //            this.flax=flax;this.nut=nut;this.grain=grain;this.spice=spice;
         }
         public DD(){dd=new ArrayList<>(Collections.nCopies(9, (float) 0));}
-        public DD(String s){
-            dd=new ArrayList<Float>(Arrays.stream(s.replaceAll("[|]","").split("ධ")).map(Float::valueOf).collect(Collectors.toList()));
+        public DD(String s){//ධධධධධධධධධධධධධධධධv
+            dd=new ArrayList<>(Arrays.stream(s.replaceAll("[|]","").split("ධ")).map(Float::valueOf).collect(Collectors.toList()));
            // dd=new ArrayList<Float>(Arrays.asList(Arrays.stream(s.replaceAll("[|]","").split("ධ")).map(Float::valueOf).toArray(Float[]::new)));
         }
-        @Override
+        //🫘🫐🍎🥬🥕🌾🌰🍞🧂
         public String toString(){
+            return ((dd.get(0)==0?"":"\uD83E\uDED8"+dd.get(0)+" ")+
+                    (dd.get(1)==0?"":"\uD83E\uDED0"+dd.get(1)+" ")+
+                    (dd.get(2)==0?"":"\uD83C\uDF4E"+dd.get(2)+" ")+
+                    (dd.get(3)==0?"":"\uD83E\uDD6C"+dd.get(3)+" ")+
+                    (dd.get(4)==0?"":"\uD83E\uDD55"+dd.get(4)+" ")+
+                    (dd.get(5)==0?"":"\uD83C\uDF3E"+dd.get(5)+" ")+
+                    (dd.get(6)==0?"":"\uD83C\uDF30"+dd.get(6)+" ")+
+                    (dd.get(7)==0?"":"\uD83C\uDF5E"+dd.get(7)+" ")+
+                    (dd.get(8)==0?"":"\uD83E\uDDC2"+dd.get(8))).trim();
+        }
+        public String save(){
             return dd.toString().replace(",","ධ");
         }
     }
@@ -78,7 +95,6 @@ public class Main extends android.app.Application{
             }
             if (label==null){
                 label=format(null);
-                ;
             }
             return label;
         }
@@ -88,22 +104,46 @@ public class Main extends android.app.Application{
     public class Product extends DBItem{
         public long id;
         public String name;
+
         public float kcal; //per 100 gram
-        public float gram_per_num;
+        public float price;//per 1 piece
+        public float gpp;//grams per 1 piece
+
         public DD DD;
         public String description;
-        public String format(@Nullable String s){
-            return name;//TODO: insanity
+        public String format(@NonNull String s){
+            try {
+                Pattern p=Pattern.compile("%(-?\\d+(?:.\\d+)?)?(kcal|price|gpp)?([/*])(-?\\d+(?:.\\d+)?)?(kcal|price|gpp)?%");
+                Matcher m=p.matcher(s);
+                while(m.find()){
+                    float right=(m.group(4)==null?1:Float.parseFloat(m.group(4)))*
+                            (m.group(5)==null?1:Product.class.getDeclaredField(m.group(5)).getFloat(this));
+
+                    s.replaceFirst(m.group(0),String.valueOf(
+                            (m.group(1)==null?1:Float.parseFloat(m.group(1)))*
+                                    (m.group(2)==null?1:Product.class.getDeclaredField(m.group(2)).getFloat(this))*
+                                    (m.group(3)=="/"?1/right:right)
+                    ));
+                    m=p.matcher(s);
+                }
+                return s;
+            }catch(Exception e){
+                e.printStackTrace();
+                Log.e(R.class.getName(),"product:format got inexplicably bruhed");
+                return s;
+            }
         }
 
         public String save(){
-            return String.format("%dඞ%sඞ%fඞ%fඞ%sඞ%s",id,name,kcal,gram_per_num,DD.toString(),description);
+            return String.format("%dඞ%sඞ%fඞ%fඞ%fඞ%sඞ%s",id,name,kcal,price,gpp,DD.save(),description);
         }
-        public Product(){
-            id=-1;
+        public Product(@Nullable Long id){
+            this.id=(id==null?-1:id);
+            this.id=-1;
             name="";
             kcal=-1;
-            gram_per_num=-1;
+            price=-1;
+            gpp=-1;
             DD=new DD();
             description="";
         }
@@ -112,15 +152,16 @@ public class Main extends android.app.Application{
             id=Long.parseLong(l[0]);
             name=l[1];
             kcal=Float.parseFloat(l[2]);
-            gram_per_num=Float.parseFloat(l[3]);
-            DD=new DD(l[4]);
-            description=l[5];
+            price=Float.parseFloat(l[3]);
+            gpp=Float.parseFloat(l[4]);
+            DD=new DD(l[5]);
+            description=l[6];
         }
     }
 
 
     public abstract class NamedDB<T,I extends DBItem>{
-        int rows=1;
+        int rows=1; //items PER row
         String format=null;
         ArrayList<Container> containers=new ArrayList<>();
         Comparator<Container> comparator;
@@ -174,15 +215,16 @@ public class Main extends android.app.Application{
             int pos=Collections.binarySearch(containers,c,comparator);
             containers.add(pos<0?-1-pos:pos,c);
         }
+
         public int posSearch(int pos){
             int _pos=Collections.binarySearch(containers,pos+1,
                     Comparator.comparingInt(c->c instanceof Integer?(int)c:((Container)c).position));
 //                    new Comparator<Object>(){public int compare(Object a,Object b){ return ((int)a)-((int)b); }});
-            return (_pos<0?-1-pos:pos)-1;
+            return (_pos<0?-1-_pos:_pos)-1;
         }
-        public int nearPosSearch(int pos,int offpos){
-            int containpos=containers.get(offpos).position;
-            if (containpos>pos){
+        public int nearPosSearch(int pos,int offpos){//offpos=container position known
+            int containpos=containers.get(offpos).position;//pos=current wanted position
+            if (containpos>pos){//offpos-1=new container wanted position
                 return offpos-1;
             }
             if(containpos<pos && offpos+1<containers.size() && containers.get(offpos+1).position<=pos){
@@ -191,6 +233,7 @@ public class Main extends android.app.Application{
             return offpos;
         }
     }
+
     public class IntDB<T extends DBItem> extends NamedDB<Integer,T>{
         public class IntContainer extends Container{
             @Override
@@ -207,7 +250,11 @@ public class Main extends android.app.Application{
                 }
             });
         }
+        //ArrayList<Container>.add(IntContainer);
+
+        //in the actual code, ((IntContainer)container).somemethodonlypresentinIntContainer()
     }
+
     public class FloatDB<T extends DBItem> extends NamedDB<Float,T>{
         public class FloatContainer extends Container{
             public String _infoToString(){
