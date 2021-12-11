@@ -133,19 +133,18 @@ public class Main extends android.app.Application{
                 return s;
             }
         }
-
         public String save(){
             return String.format("%dඞ%sඞ%fඞ%fඞ%fඞ%sඞ%s",id,name,kcal,price,gpp,DD.save(),description);
         }
-        public Product(@Nullable Long id){
+        public Product(@Nullable Long id,@Nullable String name, @Nullable Float kcal,
+                       @Nullable Float price,@Nullable Float gpp,@Nullable DD DD,@Nullable String description){
             this.id=(id==null?-1:id);
-            this.id=-1;
-            name="";
-            kcal=-1;
-            price=-1;
-            gpp=-1;
-            DD=new DD();
-            description="";
+            this.name=(name==null?"":name);
+            this.kcal=(kcal==null?-1:kcal);
+            this.price=(price==null?-1:price);
+            this.gpp=(gpp==null?-1:gpp);
+            this.DD=(DD==null?new DD():DD);
+            this.description=(description==null?"":description);
         }
         public Product(String s){
             String[] l=s.split("ඞ");
