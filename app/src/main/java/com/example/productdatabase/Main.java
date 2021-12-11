@@ -63,7 +63,7 @@ public class Main extends android.app.Application{
 //            this.flax=flax;this.nut=nut;this.grain=grain;this.spice=spice;
         }
         public DD(){dd=new ArrayList<>(Collections.nCopies(9, (float) 0));}
-        public DD(String s){//ධධධධධධධධධධධධධධධධv
+        public DD(String s){//ධධධධධධධධධධධධධධධධv🧂🧂🧂
             dd=new ArrayList<>(Arrays.stream(s.replaceAll("[|]","").split("ධ")).map(Float::valueOf).collect(Collectors.toList()));
            // dd=new ArrayList<Float>(Arrays.asList(Arrays.stream(s.replaceAll("[|]","").split("ධ")).map(Float::valueOf).toArray(Float[]::new)));
         }
@@ -101,6 +101,9 @@ public class Main extends android.app.Application{
         public String label = "";
         //String s=StringUtils.replace();
     }
+    public class Purchase extends DBItem{
+
+    }
     public class Product extends DBItem{
         public long id;
         public String name;
@@ -111,6 +114,7 @@ public class Main extends android.app.Application{
 
         public DD DD;
         public String description;
+        public ArrayList<Purchase> purchases=new ArrayList<>();
         public String format(@NonNull String s){
             try {
                 Pattern p=Pattern.compile("%(-?\\d+(?:.\\d+)?)?(kcal|price|gpp)?([/*])(-?\\d+(?:.\\d+)?)?(kcal|price|gpp)?%");
@@ -158,12 +162,15 @@ public class Main extends android.app.Application{
         }
     }
 
-
+    public interface DBItemAdapter<T,I extends DBItem>{
+        public T getInfo(I item);
+    }
     public abstract class NamedDB<T,I extends DBItem>{
         int rows=1; //items PER row
         String format=null;
         ArrayList<Container> containers=new ArrayList<>();
-        Comparator<Container> comparator;
+        Comparator<T> comparator;
+        DBItemAdapter<T,I> adapter;
         public abstract class Container{
             T info;
             ArrayList<I> items;
@@ -195,10 +202,17 @@ public class Main extends android.app.Application{
                 return ((items.size()-1)/rows)+1;
             }
         }
-        public NamedDB(int rows, Comparator<Container> comp){
+        public NamedDB(int rows, Comparator<T> comp,DBItemAdapter<T,I> adapter){
             this.rows=rows;
             this.comparator=comp;
+            this.adapter=adapter;
         }
+        public void fromArrayList(ArrayList<I> arr){
+
+        }
+        public void notifyInsert(){}
+        public void notifyDelete(){}
+
         public void positionEval(){
             if (containers.size()==0){ return; }
             int pos=0;
@@ -207,8 +221,9 @@ public class Main extends android.app.Application{
                 pos+=1+containers.get(i).evalSize(rows);
             }
         }
+
         public void sort(){
-            containers.sort(comparator);
+            containers.sort(Comparator.comparing(c->c.info,comparator));
         }
         public void sortInsert(Container c){
             int pos=Collections.binarySearch(containers,c,comparator);
@@ -242,12 +257,8 @@ public class Main extends android.app.Application{
             public IntContainer(int i, ArrayList<T> items){ super(i,items); }
             public IntContainer(int i, ArrayList<T> items, boolean genLabel){ super(i,items,genLabel); }
         }
-        public IntDB(int rows){
-            super(rows,new Comparator<Container>(){
-                public int compare(Container a, Container b){
-                    return a.info-b.info;
-                }
-            });
+        public IntDB(int rows,DBItemAdapter<Integer,T> adapter){
+            super(rows, Comparator.comparingInt(a -> a.info),adapter);
         }
         //ArrayList<Container>.add(IntContainer);
 
@@ -266,14 +277,13 @@ public class Main extends android.app.Application{
                 super(i,items,genLabel);
             }
         }
-        public FloatDB(int rows){
-            super(rows,Comparator.comparingDouble(c-> c.info)
+        public FloatDB(int rows,DBItemAdapter<Float,T> adapter){
+            super(rows,Comparator.comparingDouble(c-> c.info),adapter);
 //                    new Comparator<Container>(){
 //                public int compare(Container a, Container b){
 //                    return (int)Math.signum(a.info-b.info);
 //                }
 //            }
-            );
         }
     }
 
