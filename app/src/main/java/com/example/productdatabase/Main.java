@@ -7,6 +7,8 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.arch.core.util.Function;
+
 import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.*;
@@ -101,9 +103,9 @@ public class Main extends android.app.Application{
         public String label = "";
         //String s=StringUtils.replace();
     }
-    public class Purchase extends DBItem{
-
-    }
+//    public class Purchase extends DBItem{
+//
+//    }
     public class Product extends DBItem{
         public long id;
         public String name;
@@ -207,11 +209,14 @@ public class Main extends android.app.Application{
             this.comparator=comp;
             this.adapter=adapter;
         }
-        public void fromArrayList(ArrayList<I> arr){
+        public void fromArrayList(ArrayList<I> _arr){
+            ArrayList<I> arr=new ArrayList<I>(_arr);
+            Collections.sort(arr,Comparator.comparing(c->adapter.getInfo(c),comparator));
+            Collections.reverse(arr);
 
         }
         public void notifyInsert(){}
-        public void notifyDelete(){}
+        public void notifyDelete(){}//TODO????t
 
         public void positionEval(){
             if (containers.size()==0){ return; }
@@ -226,7 +231,7 @@ public class Main extends android.app.Application{
             containers.sort(Comparator.comparing(c->c.info,comparator));
         }
         public void sortInsert(Container c){
-            int pos=Collections.binarySearch(containers,c,comparator);
+            int pos=Collections.binarySearch(containers,c,Comparator.comparing(_c->_c.info,comparator));
             containers.add(pos<0?-1-pos:pos,c);
         }
 
@@ -258,7 +263,7 @@ public class Main extends android.app.Application{
             public IntContainer(int i, ArrayList<T> items, boolean genLabel){ super(i,items,genLabel); }
         }
         public IntDB(int rows,DBItemAdapter<Integer,T> adapter){
-            super(rows, Comparator.comparingInt(a -> a.info),adapter);
+            super(rows, Comparator.comparingInt(c->c),adapter);
         }
         //ArrayList<Container>.add(IntContainer);
 
@@ -277,8 +282,9 @@ public class Main extends android.app.Application{
                 super(i,items,genLabel);
             }
         }
+
         public FloatDB(int rows,DBItemAdapter<Float,T> adapter){
-            super(rows,Comparator.comparingDouble(c-> c.info),adapter);
+            super(rows,Comparator.comparingDouble(c-> c),adapter);
 //                    new Comparator<Container>(){
 //                public int compare(Container a, Container b){
 //                    return (int)Math.signum(a.info-b.info);
