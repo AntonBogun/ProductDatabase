@@ -37,28 +37,29 @@ public class Main extends android.app.Application{
         return Math.round(dpToPxf(dp,context));
     }
 
-    public enum DDConsts{
-        BEAN(0,3,"130g cooked beans, 60g hummus"),
-        BERRY(1,1,"60g fresh or frozen, 40g dried"),
-        FRUIT(2,3, "apple, 40g dried fruit"),
-        LEAF(3,3,"60g of anything green, 6 grams horseradish"),
-        NOLEAF(4,2,"50g veg no leaf"),
-        FLAX(5,1,"6 gram ground flaxseed"),
-        NUT(6,1,"30g nuts, 12g nut butter(???)"),
-        GRAIN(7,3,"100g oatmeal, 1 bread slice"),
-        SPICE(8,1,"2gram turmenic");//the spice must flow
-        final float perday;
-        final String desc;
-        final int pos;
-        DDConsts(int pos,float perday, String desc){
-            this.pos=pos;
-            this.perday=perday;
-            this.desc=desc;
-        }
-    }
-    public class DD{
+
+    public static class DD{
         public ArrayList<Float>dd;
         //public int bean,berry,fruit,leaf,noleaf,flax,nut,grain,spice;
+        public enum info{
+            BEAN(0,3,"130g cooked beans, 60g hummus"),
+            BERRY(1,1,"60g fresh or frozen, 40g dried"),
+            FRUIT(2,3, "apple, 40g dried fruit"),
+            LEAF(3,3,"60g of anything green, 6 grams horseradish"),
+            NOLEAF(4,2,"50g veg no leaf"),
+            FLAX(5,1,"6 gram ground flaxseed"),
+            NUT(6,1,"30g nuts, 12g nut butter(???)"),
+            GRAIN(7,3,"100g oatmeal, 1 bread slice"),
+            SPICE(8,1,"2gram turmenic");//the spice must flow
+            final float perday;
+            final String desc;
+            final int pos;
+            info(int pos,float perday, String desc){
+                this.pos=pos;
+                this.perday=perday;
+                this.desc=desc;
+            }
+        }
         public DD(ArrayList<Float>list){
             dd=list;
 //            this.bean=bean;this.berry=berry;this.fruit=fruit;this.leaf=leaf;this.noleaf=noleaf;
@@ -86,34 +87,58 @@ public class Main extends android.app.Application{
         }
     }
 
-    public abstract class DBItem{
+    public static abstract class DBItem{
         public abstract String format(@Nullable String s);
-        public String getLabel(){
-            return getLabel(null);
-        }
-        public String getLabel(@Nullable String s){
-            if (s!=null){
-                label=format(s);
-            }
-            if (label==null){
-                label=format(null);
-            }
-            return label;
-        }
-        public String label = "";
+        //protected enum delimiters{};
+        public enum ID{};
+        public abstract Object getDelimiterInfo(int id);
+        public abstract int getId(String s);
         //String s=StringUtils.replace();
     }
-//    public class Purchase extends DBItem{
-//
-//    }
-    public class Product extends DBItem{
+    public class Purchase extends DBItem{
+
+    }
+    public static class Product extends DBItem{
         public long id;
         public String name;
+
+        public enum ID{
+            KCAL(0),PRICE(1),GPP(2),KCALPPRICE(3);
+            public final int value;
+            ID(int i){
+                value=i;
+            }
+        }
+        //protected enum delimiters{}
+        public int getId(String s){
+            return ID.valueOf(s).value;
+        }
+        public Object getDelimiterInfo(int id){
+            switch (id){
+                case 0: //i hate java enum
+                    return (kcal==-1?-1:(float)(Math.floor(kcal/50)*50));
+                case 1:
+                    return (price==-1?-1:(float)(Math.floor(price)));
+                case 2:
+                    return (gpp==-1?-1:(float)(Math.floor(gpp)));
+                case 3:
+                    float k=getKcalPPrice();
+                    if (k==-1){
+                        return -1;
+                    }else{
+                        return (float)(Math.floor(k/30)*30);
+                    }
+                default:
+                    return new Object();//not supposed to happen
+            }
+        }
 
         public float kcal; //per 100 gram
         public float price;//per 1 piece
         public float gpp;//grams per 1 piece
-
+        public float getKcalPPrice(){
+            return (kcal==-1||price==-1||gpp==-1?-1:kcal*gpp/price/100);
+        }
         public DD DD;
         public String description;
         public ArrayList<Purchase> purchases=new ArrayList<>();
@@ -122,13 +147,17 @@ public class Main extends android.app.Application{
                 Pattern p=Pattern.compile("%(-?\\d+(?:.\\d+)?)?(kcal|price|gpp)?([/*])(-?\\d+(?:.\\d+)?)?(kcal|price|gpp)?%");
                 Matcher m=p.matcher(s);
                 while(m.find()){
-                    float right=(m.group(4)==null?1:Float.parseFloat(m.group(4)))*
-                            (m.group(5)==null?1:Product.class.getDeclaredField(m.group(5)).getFloat(this));
-
+                    //number left/right
+                    float nleft=m.group(1)==null?1:Float.parseFloat(m.group(1));
+                    float nright=m.group(4)==null?1:Float.parseFloat(m.group(4));
+                    //property left/right
+                    float pleft=m.group(2)==null?1:Product.class.getDeclaredField(m.group(2)).getFloat(this);
+                    float pright=m.group(5)==null?1:Product.class.getDeclaredField(m.group(5)).getFloat(this);
+                    if(nleft==-1 ||nright==-1||pleft==-1||pright==-1){
+                        s.replaceFirst(m.group(0),"-1"); //-1 propagates
+                    }
                     s.replaceFirst(m.group(0),String.valueOf(
-                            (m.group(1)==null?1:Float.parseFloat(m.group(1)))*
-                                    (m.group(2)==null?1:Product.class.getDeclaredField(m.group(2)).getFloat(this))*
-                                    (m.group(3)=="/"?1/right:right)
+                            nleft*pleft*(m.group(3)=="/"?1/nright/pright:nright*pright)
                     ));
                     m=p.matcher(s);
                 }
@@ -162,62 +191,97 @@ public class Main extends android.app.Application{
             DD=new DD(l[5]);
             description=l[6];
         }
+        public Product(){}
     }
 
     public interface DBItemAdapter<T,I extends DBItem>{
         public T getInfo(I item);
     }
-    public abstract class NamedDB<T,I extends DBItem>{
+    public class NamedDB<T,I extends DBItem>{
         int rows=1; //items PER row
-        String format=null;
-        ArrayList<Container> containers=new ArrayList<>();
-        Comparator<T> comparator;
-        DBItemAdapter<T,I> adapter;
-        public abstract class Container{
+        public String format=null;
+        protected ArrayList<Container> containers=new ArrayList<>();
+        public final Comparator<T> comparator;
+        public final Class<T> t;
+        public final Function<T,String> contInfoToString;//display
+        public final Function<I,T> getInfo;//adapter
+        public final int delimID;
+        public final Function<> delimiter;
+        //TODO: confirm non-sus
+        public class Container{
             T info;
             ArrayList<I> items;
-            String label;
             int position;
             public Container(T info, ArrayList<I>items) {
                 this.info=info;
                 this.items=items;
             }
-            public Container(T info, ArrayList<I>items, boolean genLabel) {
+            public Container(T info){
                 this.info=info;
-                this.items=items;
-                if(genLabel){
-                    getLabel();
-                }
+                this.items=new ArrayList<I>();
             }
-            public abstract String _infoToString();
             public String getLabel(){
-                return getLabel(false);
-            }
-            public String getLabel(boolean b){
-                if (label==null ||b){
-                    label=_infoToString();
-                }
-                return label;
+                return contInfoToString.apply(info);
             }
             public int evalSize(int rows){
                 if (items.size()==0){return 0;}
                 return ((items.size()-1)/rows)+1;
             }
         }
-        public NamedDB(int rows, Comparator<T> comp,DBItemAdapter<T,I> adapter){
+        //TODO: confirm non-sus
+        public NamedDB(int rows,Class<T>t, Comparator<T> comp, Function<I,T> getInfo,
+                       Function<T,String> contInfoToString,String delim,I dummyitem){
             this.rows=rows;
+            this.t=t;
             this.comparator=comp;
-            this.adapter=adapter;
+            this.getInfo=getInfo;
+            this.contInfoToString=contInfoToString;
+            this.delimID=dummyitem.getId(delim);//I hate java's static/abstract exclusivity
         }
+        //TODO: confirm non-sus
         public void fromArrayList(ArrayList<I> _arr){
-            ArrayList<I> arr=new ArrayList<I>(_arr);
-            Collections.sort(arr,Comparator.comparing(c->adapter.getInfo(c),comparator));
+            ArrayList<I> arr=new ArrayList<>(_arr);
+            Collections.sort(arr,Comparator.comparing(getInfo::apply,comparator));
             Collections.reverse(arr);
-
+            for (int i = arr.size()-1; i >-1; i--) {
+                addToCont(arr.get(i));
+                arr.remove(i);
+            }
         }
-        public void notifyInsert(){}
-        public void notifyDelete(){}//TODO????t
+        @SuppressWarnings("unchecked") //compiler can skidaddle
+        public void notifyInsert(I i){
+            T val;
+            int n;
+            if((n=Collections.binarySearch(containers, (val=(T)i.getDelimiterInfo(delimID)),
+                    Comparator.comparing(c->t.isInstance(c)?(T)c:((Container)c).info,comparator)))<0){
+                containers.add(-1-n,new Container(val));
+                containers.get(-1-n).items.add(i);
+            }else{
+                containers.get(n).items.add(Collections.binarySearch(containers.get(n).items,
+                        i,Comparator.comparing(getInfo::apply,comparator)),i);
+            }
+        }
+        @SuppressWarnings("unchecked")
+        public void notifyDelete(I i){
+            int n;
+            if ((n = Collections.binarySearch(containers, (T) i.getDelimiterInfo(delimID),
+                    Comparator.comparing(c -> t.isInstance(c)
+                    ?(T) c : ((Container) c).info, comparator))) >= 0) {
+                if(containers.get(n).items.size()==1 && containers.get(n).items.get(0)==i){//TODO: figure out if yikes
+                    containers.remove(n);
+                }else{
+                    int n2;
+                    if ((n2 = Collections.binarySearch(containers.get(n).items, i, Comparator.comparing(
+                            getInfo::apply, comparator))) >= 0) {
+                        containers.get(n).items.remove(n2);
+                    }
+                }
+            }
+        }
+        //TODO: lmao
+        public void notifyChange(I _old, I _new){notifyDelete(_old);notifyInsert(_new);}
 
+        //TODO: idk if correct
         public void positionEval(){
             if (containers.size()==0){ return; }
             int pos=0;
@@ -226,21 +290,35 @@ public class Main extends android.app.Application{
                 pos+=1+containers.get(i).evalSize(rows);
             }
         }
-
+        //TODO: Add full sort
         public void sort(){
             containers.sort(Comparator.comparing(c->c.info,comparator));
         }
-        public void sortInsert(Container c){
+        @SuppressWarnings("unchecked")
+        public void addToCont(I i){
+            T val;
+            int n;
+            if((n=Collections.binarySearch(containers, (val=(T)i.getDelimiterInfo(delimID)),
+                    Comparator.comparing(c->t.isInstance(c)?(T)c:((Container)c).info,comparator)))<0){
+                containers.add(-1-n,new Container(val));
+                containers.get(-1-n).items.add(i);
+            }else{
+                containers.get(n).items.add(i);
+            }
+        }//correct
+        //TODO: idk if correct
+        public void contAdd(Container c){
             int pos=Collections.binarySearch(containers,c,Comparator.comparing(_c->_c.info,comparator));
-            containers.add(pos<0?-1-pos:pos,c);
+            containers.add(pos<0?-2-pos:pos,c);
         }
-
-        public int posSearch(int pos){
-            int _pos=Collections.binarySearch(containers,pos+1,
+        //TODO: idk if correct
+        public int contPosSearch(int pos){
+            int _pos=Collections.binarySearch(containers,pos,
                     Comparator.comparingInt(c->c instanceof Integer?(int)c:((Container)c).position));
 //                    new Comparator<Object>(){public int compare(Object a,Object b){ return ((int)a)-((int)b); }});
-            return (_pos<0?-1-_pos:_pos)-1;
+            return (_pos<0?-2-_pos:_pos);
         }
+        //TODO: idk if correct
         public int nearPosSearch(int pos,int offpos){//offpos=container position known
             int containpos=containers.get(offpos).position;//pos=current wanted position
             if (containpos>pos){//offpos-1=new container wanted position
@@ -252,46 +330,5 @@ public class Main extends android.app.Application{
             return offpos;
         }
     }
-
-    public class IntDB<T extends DBItem> extends NamedDB<Integer,T>{
-        public class IntContainer extends Container{
-            @Override
-            public String _infoToString(){
-                return String.valueOf(info);
-            }
-            public IntContainer(int i, ArrayList<T> items){ super(i,items); }
-            public IntContainer(int i, ArrayList<T> items, boolean genLabel){ super(i,items,genLabel); }
-        }
-        public IntDB(int rows,DBItemAdapter<Integer,T> adapter){
-            super(rows, Comparator.comparingInt(c->c),adapter);
-        }
-        //ArrayList<Container>.add(IntContainer);
-
-        //in the actual code, ((IntContainer)container).somemethodonlypresentinIntContainer()
-    }
-
-    public class FloatDB<T extends DBItem> extends NamedDB<Float,T>{
-        public class FloatContainer extends Container{
-            public String _infoToString(){
-                return String.valueOf(info);
-            }
-            public FloatContainer(float i, ArrayList<T> items){
-                super(i,items);
-            }
-            public FloatContainer(float i, ArrayList<T> items, boolean genLabel){
-                super(i,items,genLabel);
-            }
-        }
-
-        public FloatDB(int rows,DBItemAdapter<Float,T> adapter){
-            super(rows,Comparator.comparingDouble(c-> c),adapter);
-//                    new Comparator<Container>(){
-//                public int compare(Container a, Container b){
-//                    return (int)Math.signum(a.info-b.info);
-//                }
-//            }
-        }
-    }
-
 }
 
