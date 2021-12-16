@@ -92,7 +92,8 @@ public class Main extends android.app.Application{
         //protected enum delimiters{};
         public enum ID{};
         public abstract Object getDelimiterInfo(int id);
-        public abstract int getId(String s);
+        public abstract int getDelimId(String s);
+        public abstract long getId();
         //String s=StringUtils.replace();
     }
     public class Purchase extends DBItem{
@@ -110,9 +111,10 @@ public class Main extends android.app.Application{
             }
         }
         //protected enum delimiters{}
-        public int getId(String s){
+        public int getDelimId(String s){
             return ID.valueOf(s).value;
         }
+        public long getID(){return id;}
         public Object getDelimiterInfo(int id){
             switch (id){
                 case 0: //i hate java enum
@@ -141,7 +143,7 @@ public class Main extends android.app.Application{
         }
         public DD DD;
         public String description;
-        public ArrayList<Purchase> purchases=new ArrayList<>();//TODO::::
+        public TreeMap<Long,Purchase> purchases=new TreeMap<>();//TODO:
         public String format(@NonNull String s){
             try {
                 Pattern p=Pattern.compile("%(-?\\d+(?:.\\d+)?)?(kcal|price|gpp)?([/*])(-?\\d+(?:.\\d+)?)?(kcal|price|gpp)?%");
@@ -200,7 +202,7 @@ public class Main extends android.app.Application{
     public class NamedDB<T,I extends DBItem>{
         int rows=1; //items PER row
         public String format=null;
-        protected ArrayList<Container> containers=new ArrayList<>();
+        protected TreeMap<T,Container> containers;
         public final Comparator<T> comparator;
         public final Class<T> t;
         public final Function<T,String> contInfoToString;//display
@@ -209,15 +211,15 @@ public class Main extends android.app.Application{
         //TODO: looks fine
         public class Container{
             T info;
-            ArrayList<I> items;
+            TreeMap<Long,I> items;
             int position;
-            public Container(T info, ArrayList<I>items) {
+            public Container(T info, TreeMap<Long,I>items) {
                 this.info=info;
                 this.items=items;
             }
             public Container(T info){
                 this.info=info;
-                this.items=new ArrayList<I>();
+                this.items=new TreeMap<Long,I>();
             }
             public String getLabel(){
                 return contInfoToString.apply(info);
@@ -235,11 +237,11 @@ public class Main extends android.app.Application{
             this.comparator=comp;
             this.getInfo=getInfo;
             this.contInfoToString=contInfoToString;
-            this.delimID=dummyitem.getId(delim);//I hate java's static/abstract exclusivity
+            this.delimID=dummyitem.getDelimId(delim);//I hate java's static/abstract exclusivity
+            containers=new TreeMap<>(comparator);
         }
-        //TODO: looks fine
-        public void fromArrayList(ArrayList<I> _arr){//_arr remains unchanged
-            ArrayList<I> arr=new ArrayList<>(_arr);
+        //TODO: AAAA
+        public void fromArrayList(ArrayList<I> arr){//passed in arr gets deleted
             Collections.sort(arr,Comparator.comparing(getInfo::apply,comparator));
             Collections.reverse(arr);
             for (int i = arr.size()-1; i >-1; i--) {
@@ -253,7 +255,7 @@ public class Main extends android.app.Application{
             int n;
             if((n=Collections.binarySearch(containers, (val=(T)i.getDelimiterInfo(delimID)),
                     Comparator.comparing(c -> t.isInstance(c)
-                    ? (T) c: ((Container) c).info, comparator))) < 0){
+                            ? (T) c: ((Container) c).info, comparator))) < 0){
                 containers.add(-1-n,new Container(val));
                 containers.get(-1-n).items.add(i);
             }else{
@@ -266,7 +268,7 @@ public class Main extends android.app.Application{
             int n;
             if ((n = Collections.binarySearch(containers, (T) i.getDelimiterInfo(delimID),
                     Comparator.comparing(c -> t.isInstance(c)
-                    ?(T) c : ((Container) c).info, comparator))) >= 0) {
+                            ?(T) c : ((Container) c).info, comparator))) >= 0) {
                 if(containers.get(n).items.size()==1 && containers.get(n).items.get(0)==i){//TODO: figure out if yikes
                     containers.remove(n);
                 }else{
@@ -285,26 +287,26 @@ public class Main extends android.app.Application{
         public void positionEval(){
             if (containers.size()==0){ return; }
             int pos=0;
-            for (int i = 0; i < containers.size(); i++) {
-                containers.get(i).position=pos;
-                pos+=1+containers.get(i).evalSize(rows);
+            for (Container c:containers.values()) {
+                c.position=pos;
+                pos+=1+c.evalSize(rows);
             }
         }
         @SuppressWarnings("unchecked")
         public void addToCont(I i){
-            T val;
-            int n;
-            if((n=Collections.binarySearch(containers, (val=(T)i.getDelimiterInfo(delimID)),
-                    Comparator.comparing(c->t.isInstance(c)?(T)c:((Container)c).info,comparator)))<0){
-                containers.add(-1-n,new Container(val));
-                containers.get(-1-n).items.add(i);
+            T val=(T)i.getDelimiterInfo(delimID);
+            Container c=containers.get(val);
+            if(c!=null){
+                c.items.put(i.getId(),i);
             }else{
-                containers.get(n).items.add(i);
+                containers.put(val,new Container(val));
+                containers.get(val).items.put(i.getId(),i);
             }
         }
         //TODO: idk if correct
         public int contPosSearch(int pos){
-            int _pos=Collections.binarySearch(containers,pos,
+
+            int _pos=Collections.binarySearch(containers.values(),pos,
                     Comparator.comparingInt(c->c instanceof Integer?(int)c:((Container)c).position));
 //                    new Comparator<Object>(){public int compare(Object a,Object b){ return ((int)a)-((int)b); }});
             return (_pos<0?-2-_pos:_pos);
