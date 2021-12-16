@@ -95,9 +95,9 @@ public class Main extends android.app.Application{
         public abstract int getId(String s);
         //String s=StringUtils.replace();
     }
-    public class Purchase extends DBItem{
-
-    }
+//    public class Purchase extends DBItem{
+//
+//    } BAD ghfjkdhgfjdklwkjfgjfoewierugfieoweirutrieow
     public static class Product extends DBItem{
         public long id;
         public String name;
@@ -141,8 +141,10 @@ public class Main extends android.app.Application{
         }
         public DD DD;
         public String description;
-        public ArrayList<Purchase> purchases=new ArrayList<>();//TODO::::
-        public String format(@NonNull String s){
+
+        //public ArrayList<Purchase> purchases=new ArrayList<>();//BAD MAKE
+
+    public String format(@NonNull String s){
             try {
                 Pattern p=Pattern.compile("%(-?\\d+(?:.\\d+)?)?(kcal|price|gpp)?([/*])(-?\\d+(?:.\\d+)?)?(kcal|price|gpp)?%");
                 Matcher m=p.matcher(s);
@@ -173,25 +175,17 @@ public class Main extends android.app.Application{
         }
         public Product(@Nullable Long id,@Nullable String name, @Nullable Float kcal,
                        @Nullable Float price,@Nullable Float gpp,@Nullable DD DD,@Nullable String description){
-            this.id=(id==null?-1:id);
-            this.name=(name==null?"":name);
-            this.kcal=(kcal==null?-1:kcal);
-            this.price=(price==null?-1:price);
-            this.gpp=(gpp==null?-1:gpp);
-            this.DD=(DD==null?new DD():DD);
+            this.id=(id==null?-1:id);           this.name=(name==null?"":name);
+            this.kcal=(kcal==null?-1:kcal);     this.price=(price==null?-1:price);
+            this.gpp=(gpp==null?-1:gpp);        this.DD=(DD==null?new DD():DD);
             this.description=(description==null?"":description);
         }
         public Product(String s){
-            String[] l=s.split("ඞ");
-            id=Long.parseLong(l[0]);
-            name=l[1];
-            kcal=Float.parseFloat(l[2]);
-            price=Float.parseFloat(l[3]);
-            gpp=Float.parseFloat(l[4]);
-            DD=new DD(l[5]);
-            description=l[6];
+            String[] l=s.split("ඞ");    id=Long.parseLong(l[0]);      name=l[1];
+            kcal=Float.parseFloat(l[2]);      price=Float.parseFloat(l[3]);
+            gpp=Float.parseFloat(l[4]);       DD=new DD(l[5]);              description=l[6];
         }
-        public Product(){}
+        public Product(){}//for ""static"" methods
     }
 
     public interface DBItemAdapter<T,I extends DBItem>{
@@ -227,7 +221,6 @@ public class Main extends android.app.Application{
                 return ((items.size()-1)/rows)+1;
             }
         }
-        //TODO: looks fine
         public NamedDB(int rows,Class<T>t, Comparator<T> comp, Function<I,T> getInfo,
                        Function<T,String> contInfoToString,String delim,I dummyitem){
             this.rows=rows;
@@ -237,7 +230,6 @@ public class Main extends android.app.Application{
             this.contInfoToString=contInfoToString;
             this.delimID=dummyitem.getId(delim);//I hate java's static/abstract exclusivity
         }
-        //TODO: looks fine
         public void fromArrayList(ArrayList<I> _arr){//_arr remains unchanged
             ArrayList<I> arr=new ArrayList<>(_arr);
             Collections.sort(arr,Comparator.comparing(getInfo::apply,comparator));
@@ -247,41 +239,9 @@ public class Main extends android.app.Application{
                 arr.remove(i);
             }
         }
-        @SuppressWarnings("unchecked") //compiler can skidaddle
-        public void notifyInsert(I i){//also note that the code is duplicated on notifyDelete
-            T val;//because making a function for this mess loses val output
-            int n;
-            if((n=Collections.binarySearch(containers, (val=(T)i.getDelimiterInfo(delimID)),
-                    Comparator.comparing(c -> t.isInstance(c)
-                    ? (T) c: ((Container) c).info, comparator))) < 0){
-                containers.add(-1-n,new Container(val));
-                containers.get(-1-n).items.add(i);
-            }else{
-                containers.get(n).items.add(Collections.binarySearch(containers.get(n).items,
-                        i,Comparator.comparing(getInfo::apply,comparator)),i);
-            }
-        }
-        @SuppressWarnings("unchecked")
-        public void notifyDelete(I i){
-            int n;
-            if ((n = Collections.binarySearch(containers, (T) i.getDelimiterInfo(delimID),
-                    Comparator.comparing(c -> t.isInstance(c)
-                    ?(T) c : ((Container) c).info, comparator))) >= 0) {
-                if(containers.get(n).items.size()==1 && containers.get(n).items.get(0)==i){//TODO: figure out if yikes
-                    containers.remove(n);
-                }else{
-                    int n2;
-                    if ((n2 = Collections.binarySearch(containers.get(n).items, i, Comparator.comparing(
-                            getInfo::apply, comparator))) >= 0) {
-                        containers.get(n).items.remove(n2);
-                    }
-                }
-            }
-        }
-        //TODO: lmao
-        public void notifyChange(I _old, I _new){notifyDelete(_old);notifyInsert(_new);}
 
-        //TODO: looks fine
+
+        //initialize positions of containers
         public void positionEval(){
             if (containers.size()==0){ return; }
             int pos=0;
@@ -291,9 +251,8 @@ public class Main extends android.app.Application{
             }
         }
         @SuppressWarnings("unchecked")
-        public void addToCont(I i){
-            T val;
-            int n;
+        public void addToCont(I i){//append to container if exists, otherwise create container
+            T val;  int n;
             if((n=Collections.binarySearch(containers, (val=(T)i.getDelimiterInfo(delimID)),
                     Comparator.comparing(c->t.isInstance(c)?(T)c:((Container)c).info,comparator)))<0){
                 containers.add(-1-n,new Container(val));
@@ -302,14 +261,13 @@ public class Main extends android.app.Application{
                 containers.get(n).items.add(i);
             }
         }
-        //TODO: idk if correct
+        @SuppressWarnings("unchecked")//find container position of row (pos) using binary search
         public int contPosSearch(int pos){
             int _pos=Collections.binarySearch(containers,pos,
                     Comparator.comparingInt(c->c instanceof Integer?(int)c:((Container)c).position));
-//                    new Comparator<Object>(){public int compare(Object a,Object b){ return ((int)a)-((int)b); }});
             return (_pos<0?-2-_pos:_pos);
         }
-        //TODO: idk if correct
+        //find container position of row (pos) using nearby check
         public int nearPosSearch(int pos,int contpos){//contpos=container position known
             int contrealpos=containers.get(contpos).position;//pos=current wanted position
             if (contrealpos>pos){//self explanatory

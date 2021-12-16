@@ -15,18 +15,11 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
-public class NameDBAdapter extends DBAdapter {
+public class NameDBAdapter<T,I extends Main.DBItem> extends DBAdapter {
     //Context context;
-    Main.NamedDB<Integer,Main.Product> DB;
-
-
-
-
-
-
-
-
+    Main.NamedDB<T,I> DB;
     //boolean invert=false;
     //int size=0;
 
@@ -121,6 +114,46 @@ public class NameDBAdapter extends DBAdapter {
             notifyDBAppend();
         }
     }
+
+    //BAD ::::::::: FIX NONSENSE
+    @SuppressWarnings("unchecked") //compiler can skidaddle
+    public void notifyInsert(I i){//also note that the code is duplicated on notifyDelete
+        T val;//because making a function for this mess loses val output
+        int n;
+        if((n= Collections.binarySearch(containers, (val=(T)i.getDelimiterInfo(delimID)),
+                Comparator.comparing(c -> t.isInstance(c)
+                        ? (T) c: ((Main.NamedDB.Container) c).info, comparator))) < 0){
+            containers.add(-1-n,new Main.NamedDB.Container(val));
+            containers.get(-1-n).items.add(i);
+        }else{
+            containers.get(n).items.add(Collections.binarySearch(containers.get(n).items,
+                    i,Comparator.comparing(getInfo::apply,comparator)),i);
+        }
+    }
+    @SuppressWarnings("unchecked")
+    public void notifyDelete(I i){
+        int n;
+        if ((n = Collections.binarySearch(containers, (T) i.getDelimiterInfo(delimID),
+                Comparator.comparing(c -> t.isInstance(c)
+                        ?(T) c : ((Main.NamedDB.Container) c).info, comparator))) >= 0) {
+            if(containers.get(n).items.size()==1 && containers.get(n).items.get(0)==i){//TODO: figure out if yikes
+                containers.remove(n);
+            }else{
+                int n2;
+                if ((n2 = Collections.binarySearch(containers.get(n).items, i, Comparator.comparing(
+                        getInfo::apply, comparator))) >= 0) {
+                    containers.get(n).items.remove(n2);
+                }
+            }
+        }
+    }
+    public void notifyChange(I _old, I _new){notifyDelete(_old);notifyInsert(_new);}
+
+
+
+
+
+
     public void notifyDBDelete(int n) {
         if (list.size() % row == 0) {
             notifyItemRangeRemoved(getItemCount(), ((list.size() + 1) % row == 1 ? 1 : 0)
