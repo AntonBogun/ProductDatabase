@@ -24,6 +24,7 @@ public class NameDBAdapter<T,I extends Main.DBItem> extends DBAdapter {
     //int size=0;
 
     int row=3;
+    //actual mental pain
 
     //public void resetListReference(ArrayList<Object> l){ list=l;}
     //public void setInvert(boolean n){invert=n;}
