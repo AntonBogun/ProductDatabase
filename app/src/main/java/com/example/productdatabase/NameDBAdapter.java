@@ -18,7 +18,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 public class NameDBAdapter extends DBAdapter {
     //Context context;
-    Main.IntDB DB;
+    Main.NamedDB<Integer,Main.Product> DB;
 
 
 

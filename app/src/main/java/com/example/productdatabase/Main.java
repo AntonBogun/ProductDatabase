@@ -12,10 +12,7 @@ import androidx.arch.core.util.Function;
 import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
+import java.util.*;
 import java.util.regex.*;
 import java.util.stream.Collectors;
 
@@ -67,8 +64,11 @@ public class Main extends android.app.Application{
         }
         public DD(){dd=new ArrayList<>(Collections.nCopies(9, (float) 0));}
         public DD(String s){//ධධධධධධධධධධධධධධධධv🧂🧂🧂
-            dd=new ArrayList<>(Arrays.stream(s.replaceAll("[|]","").split("ධ")).map(Float::valueOf).collect(Collectors.toList()));
-           // dd=new ArrayList<Float>(Arrays.asList(Arrays.stream(s.replaceAll("[|]","").split("ධ")).map(Float::valueOf).toArray(Float[]::new)));
+            dd= Arrays.stream(s.replaceAll("[|]", "").split("ධ")).
+                    map(Float::valueOf).collect(Collectors.toCollection(ArrayList::new));//cursed
+            //dd=new ArrayList<>(Arrays.stream(s.replaceAll("[|]","").split("ධ")).map(Float::valueOf).collect(Collectors.toList()));
+
+            // dd=new ArrayList<Float>(Arrays.asList(Arrays.stream(s.replaceAll("[|]","").split("ධ")).map(Float::valueOf).toArray(Float[]::new)));
         }
         //🫘🫐🍎🥬🥕🌾🌰🍞🧂
         public String toString(){
@@ -141,7 +141,7 @@ public class Main extends android.app.Application{
         }
         public DD DD;
         public String description;
-        public ArrayList<Purchase> purchases=new ArrayList<>();
+        public ArrayList<Purchase> purchases=new ArrayList<>();//TODO::::
         public String format(@NonNull String s){
             try {
                 Pattern p=Pattern.compile("%(-?\\d+(?:.\\d+)?)?(kcal|price|gpp)?([/*])(-?\\d+(?:.\\d+)?)?(kcal|price|gpp)?%");
@@ -205,9 +205,8 @@ public class Main extends android.app.Application{
         public final Class<T> t;
         public final Function<T,String> contInfoToString;//display
         public final Function<I,T> getInfo;//adapter
-        public final int delimID;
-        public final Function<> delimiter;
-        //TODO: confirm non-sus
+        public final int delimID;//delimiter ID for DBItem
+        //TODO: looks fine
         public class Container{
             T info;
             ArrayList<I> items;
@@ -228,7 +227,7 @@ public class Main extends android.app.Application{
                 return ((items.size()-1)/rows)+1;
             }
         }
-        //TODO: confirm non-sus
+        //TODO: looks fine
         public NamedDB(int rows,Class<T>t, Comparator<T> comp, Function<I,T> getInfo,
                        Function<T,String> contInfoToString,String delim,I dummyitem){
             this.rows=rows;
@@ -238,8 +237,8 @@ public class Main extends android.app.Application{
             this.contInfoToString=contInfoToString;
             this.delimID=dummyitem.getId(delim);//I hate java's static/abstract exclusivity
         }
-        //TODO: confirm non-sus
-        public void fromArrayList(ArrayList<I> _arr){
+        //TODO: looks fine
+        public void fromArrayList(ArrayList<I> _arr){//_arr remains unchanged
             ArrayList<I> arr=new ArrayList<>(_arr);
             Collections.sort(arr,Comparator.comparing(getInfo::apply,comparator));
             Collections.reverse(arr);
@@ -249,11 +248,12 @@ public class Main extends android.app.Application{
             }
         }
         @SuppressWarnings("unchecked") //compiler can skidaddle
-        public void notifyInsert(I i){
-            T val;
+        public void notifyInsert(I i){//also note that the code is duplicated on notifyDelete
+            T val;//because making a function for this mess loses val output
             int n;
             if((n=Collections.binarySearch(containers, (val=(T)i.getDelimiterInfo(delimID)),
-                    Comparator.comparing(c->t.isInstance(c)?(T)c:((Container)c).info,comparator)))<0){
+                    Comparator.comparing(c -> t.isInstance(c)
+                    ? (T) c: ((Container) c).info, comparator))) < 0){
                 containers.add(-1-n,new Container(val));
                 containers.get(-1-n).items.add(i);
             }else{
@@ -281,7 +281,7 @@ public class Main extends android.app.Application{
         //TODO: lmao
         public void notifyChange(I _old, I _new){notifyDelete(_old);notifyInsert(_new);}
 
-        //TODO: idk if correct
+        //TODO: looks fine
         public void positionEval(){
             if (containers.size()==0){ return; }
             int pos=0;
@@ -289,10 +289,6 @@ public class Main extends android.app.Application{
                 containers.get(i).position=pos;
                 pos+=1+containers.get(i).evalSize(rows);
             }
-        }
-        //TODO: Add full sort
-        public void sort(){
-            containers.sort(Comparator.comparing(c->c.info,comparator));
         }
         @SuppressWarnings("unchecked")
         public void addToCont(I i){
@@ -305,11 +301,6 @@ public class Main extends android.app.Application{
             }else{
                 containers.get(n).items.add(i);
             }
-        }//correct
-        //TODO: idk if correct
-        public void contAdd(Container c){
-            int pos=Collections.binarySearch(containers,c,Comparator.comparing(_c->_c.info,comparator));
-            containers.add(pos<0?-2-pos:pos,c);
         }
         //TODO: idk if correct
         public int contPosSearch(int pos){
@@ -319,15 +310,15 @@ public class Main extends android.app.Application{
             return (_pos<0?-2-_pos:_pos);
         }
         //TODO: idk if correct
-        public int nearPosSearch(int pos,int offpos){//offpos=container position known
-            int containpos=containers.get(offpos).position;//pos=current wanted position
-            if (containpos>pos){//offpos-1=new container wanted position
-                return offpos-1;
+        public int nearPosSearch(int pos,int contpos){//contpos=container position known
+            int contrealpos=containers.get(contpos).position;//pos=current wanted position
+            if (contrealpos>pos){//self explanatory
+                return contpos-1;
+            }//when next cont exists and pos is in next cont
+            if(contrealpos<pos && contpos+1<containers.size() && containers.get(contpos+1).position<=pos){
+                return contpos+1;
             }
-            if(containpos<pos && offpos+1<containers.size() && containers.get(offpos+1).position<=pos){
-                return offpos+1;
-            }
-            return offpos;
+            return contpos;
         }
     }
 }
