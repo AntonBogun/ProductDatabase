@@ -232,7 +232,7 @@ public class Main extends android.app.Application{
         }
         public void fromArrayList(ArrayList<I> _arr){//_arr remains unchanged
             ArrayList<I> arr=new ArrayList<>(_arr);
-            Collections.sort(arr,Comparator.comparing(getInfo::apply,comparator));
+            arr.sort(Comparator.comparing(getInfo::apply, comparator));
             Collections.reverse(arr);
             for (int i = arr.size()-1; i >-1; i--) {
                 addToCont(arr.get(i));
@@ -278,6 +278,42 @@ public class Main extends android.app.Application{
             }
             return contpos;
         }
+        //BAD: shouldnt be used without adapter
+        @SuppressWarnings("unchecked") //compiler can skidaddle
+        public void notifyInsert(I i){//also note that the code is duplicated on notifyDelete
+            T val;//because making a function for this mess loses val output
+            int n;
+            if((n= Collections.binarySearch(containers, (val=(T)i.getDelimiterInfo(delimID)),
+                    Comparator.comparing(c -> t.isInstance(c)
+                            ? (T) c: ((Container) c).info, comparator))) < 0){
+                containers.add(-1-n,new Main.NamedDB.Container(val));
+                containers.get(-1-n).items.add(i);
+            }else{
+                containers.get(n).items.add(Collections.binarySearch(containers.get(n).items,
+                        i,Comparator.comparing(getInfo::apply,comparator)),i);
+            }
+        }
+        //BAD: shouldnt be used without adapter
+        @SuppressWarnings("unchecked")
+        public void notifyDelete(I i){
+            int n;
+            if ((n = Collections.binarySearch(containers, (T) i.getDelimiterInfo(delimID),
+                    Comparator.comparing(c -> t.isInstance(c)
+                            ? (T) c : ((Container) c).info, comparator))) >= 0) {
+                if(containers.get(n).items.size()==1 && containers.get(n).items.get(0)==i){//TODO: figure out if comparison fails
+                    containers.remove(n);
+                }else{
+                    int n2;
+                    if ((n2 = Collections.binarySearch(containers.get(n).items, i, Comparator.comparing(
+                            getInfo::apply, comparator))) >= 0) {
+                        containers.get(n).items.remove(n2);
+                    }
+                }
+            }
+        }
+        //BAD: shouldnt be used without adapter
+        public void notifyChange(I _old, I _new){notifyDelete(_old);notifyInsert(_new);}
     }
+
 }
 
