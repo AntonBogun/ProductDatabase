@@ -34,6 +34,9 @@ public class Main extends android.app.Application{
         return Math.round(dpToPxf(dp,context));
     }
 
+    public static int ceil(int a,int b){
+        return a/b+(a%b!=0&&(a>0)==(b>0)?1:0);
+    }
 
     public static class DD{
         public ArrayList<Float>dd;
@@ -92,7 +95,11 @@ public class Main extends android.app.Application{
         //protected enum delimiters{};
         public enum ID{};
         public abstract Object getDelimiterInfo(int id);
-        public abstract int getId(String s);
+        public abstract int getDelimId(String s);
+
+        //no two items stored in same list should have same id, given both share same value field
+        public abstract long getId();
+
         //String s=StringUtils.replace();
     }
 //    public class Purchase extends DBItem{
@@ -100,6 +107,7 @@ public class Main extends android.app.Application{
 //    } BAD ghfjkdhgfjdklwkjfgjfoewierugfieoweirutrieow
     public static class Product extends DBItem{
         public long id;
+        public long getId(){return id;}
         public String name;
 
         public enum ID{
@@ -110,7 +118,7 @@ public class Main extends android.app.Application{
             }
         }
         //protected enum delimiters{}
-        public int getId(String s){
+        public int getDelimId(String s){
             return ID.valueOf(s).value;
         }
         public Object getDelimiterInfo(int id){
@@ -132,7 +140,6 @@ public class Main extends android.app.Application{
                     return new Object();//not supposed to happen
             }
         }
-
         public float kcal; //per 100 gram
         public float price;//per 1 piece
         public float gpp;//grams per 1 piece
@@ -228,7 +235,7 @@ public class Main extends android.app.Application{
             this.comparator=comp;
             this.getInfo=getInfo;
             this.contInfoToString=contInfoToString;
-            this.delimID=dummyitem.getId(delim);//I hate java's static/abstract exclusivity
+            this.delimID=dummyitem.getDelimId(delim);//I hate java's static/abstract exclusivity
         }
         public void fromArrayList(ArrayList<I> _arr){//_arr remains unchanged
             ArrayList<I> arr=new ArrayList<>(_arr);

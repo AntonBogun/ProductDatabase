@@ -87,8 +87,12 @@ public class DBAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     }
 
     public void notifyDBAppend(){
+        if(list.size()==1){
+            notifyDataSetChanged();
+            return;
+        }
         if(list.size()%row==1){
-            if ((getItemCount()-1)%(separate+1)==0) {
+            if (getItemCount()>1&& (size-1)%(separate+1)==0) {
                 notifyItemRangeInserted(size-2,2);
             }else{
                 notifyItemInserted(size-1);
@@ -108,6 +112,10 @@ public class DBAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         }
     }
     public void notifyDBDelete(int n) {
+        if(list.size()==0){
+            notifyDataSetChanged();
+            return;
+        }
         if (list.size() % row == 0) {
             notifyItemRangeRemoved(getItemCount(), ((list.size() + 1) % row == 1 ? 1 : 0)
                     + ((list.size() + 1) % (row*separate) == 1 ? 1 : 0));

@@ -107,7 +107,7 @@ public class SecondActivity extends AppCompatActivity{
         l=((Main) getApplication()).global_l;
         adapter.resetListReference(l);
         if(l.size()==0) {
-            for (int n =1;n<61;n++){
+            for (int n =1;n<15;n++){
                 l.add(n);
             }
             //l.add(1);//((Main) getApplication()).global_i
@@ -167,6 +167,7 @@ public class SecondActivity extends AppCompatActivity{
                 l.add(l.size()+1);
                 //Log.d(R.class.getName(),"l="+l.toString());
                 //adapter.notifyItemInserted(l.size()-1);
+
                 adapter.notifyDBAppend();
                 //adapter.notifyDBInsert(1);
 
@@ -207,16 +208,18 @@ public class SecondActivity extends AppCompatActivity{
 
     public void onRecyclerClick(View v,int id){
         //Log.e(R.class.getName(),"Bruh clicked="+id);
-        l.remove(id);
+        if(l.size()!=0) {
+            l.remove(id);
+        }
         adapter.notifyDBDelete(id);
         //Log.d(R.class.getName(),v.toString());
-        if (v instanceof TextView){
-            TextView txt=(TextView)v;
-            //Log.e(R.class.getName(), txt.getText()+", id:"+id );//i literally can not
-            txt.setText("LMAO");
-            scroll=recyclerView.computeVerticalScrollOffset();
-            Log.e(R.class.getName(),"scrol="+scroll);
-        }
+//        if (v instanceof TextView){
+//            TextView txt=(TextView)v;
+//            //Log.e(R.class.getName(), txt.getText()+", id:"+id );//i literally can not
+//            txt.setText("LMAO");
+//            scroll=recyclerView.computeVerticalScrollOffset();
+//            Log.e(R.class.getName(),"scrol="+scroll);
+//        }
     }
 //    @Override
 //    protected void onDestroy(){

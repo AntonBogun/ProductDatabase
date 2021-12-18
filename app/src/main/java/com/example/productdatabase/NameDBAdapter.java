@@ -1,6 +1,7 @@
 
 package com.example.productdatabase;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,298 +19,284 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-public class NameDBAdapter extends DBAdapter {
-    //Context context;
-    public class DynamicNamedDB{
-        public final Class<?> T;
-        public final Class<? extends Main.DBItem> I;
+public class DynamicNamedDBAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+    Context context;
+    int row=3; //items PER row
 
-        int rows; //items PER row
-        public String format=null;
-        protected ArrayList<Container> containers=new ArrayList<>();
-        public final Comparator<Object> comparator; //<T>
-        public final Function<Object,String> contInfoToString;//display <T,String>
-        public final Function<Main.DBItem,Object> getInfo;//adapter <I,T>
-        public final int delimID;//delimiter ID for DBItem
-        //TODO: looks fine
-        public class Container{
-            Object info; //<T>
-            ArrayList<Main.DBItem> items;//<I>
-            int position;
-            public Container(Object info, ArrayList<Main.DBItem>items) {
-                this.info=info;
-                this.items=items;
-            }
-            public Container(Object info){
-                this.info=info;
-                this.items=new ArrayList<>();
-            }
-            public String getLabel(){
-                return contInfoToString.apply(info);
-            }
-            public int evalSize(int rows){
-                if (items.size()==0){return 0;}
-                return ((items.size()-1)/rows)+1;
-            }
-        }
-        public DynamicNamedDB(int rows, Class<Object> T, Class<? extends Main.DBItem> I, Comparator<Object> comp,
-                              Function<Main.DBItem,Object> getInfo, Function<Object,String> contInfoToString,
-                              String delim, Main.DBItem dummyitem){
-            this.rows=rows;
-            this.T=T;
-            this.I=I;
-            this.comparator=comp;
-            this.getInfo=getInfo;
-            this.contInfoToString=contInfoToString;
-            this.delimID=dummyitem.getId(delim);//because wildcard not allowed for argument type
-        }
-        public void fromArrayList(ArrayList<Main.DBItem> _arr){//_arr remains unchanged
-            ArrayList<Main.DBItem> arr=new ArrayList<>(_arr);
-            arr.sort(Comparator.comparing(getInfo::apply,comparator));
-            Collections.reverse(arr);
-            for (int i = arr.size()-1; i >-1; i--) {
-                addToCont(arr.get(i));
-                arr.remove(i);
-            }
-        }
+    public Class<?> T;
+    public Class<? extends Main.DBItem> I;
 
-
-        //initialize positions of containers
-        public void positionEval(){
-            if (containers.size()==0){ return; }
-            int pos=0;
-            for (int i = 0; i < containers.size(); i++) {
-                containers.get(i).position=pos;
-                pos+=1+containers.get(i).evalSize(rows);
+    public String format=null;
+    protected ArrayList<Container> containers;
+    public Comparator<Object> comparator; //<T>
+    public Function<Object,String> contInfoToString;//display <T,String>
+    public Function<Main.DBItem,Object> getInfo;//adapter <I,T>
+    public int delimID;//delimiter ID for DBItem
+    //TODO: looks fine
+    public class Container{
+        Object info; //<T>
+        ArrayList<Main.DBItem> items;//<I>
+        int position;
+        public Container(Object info, ArrayList<Main.DBItem>items) {
+            this.info=info;
+            this.items=items;
+        }
+        public Container(Object info){
+            this.info=info;
+            this.items=new ArrayList<>();
+        }
+        public String getLabel(){
+            return contInfoToString.apply(info);
+        }
+        public int evalSize(){
+            return Main.ceil(items.size(),row);//size of container in rows
+        }
+        public int evalRow(int pos){
+            return position+1+pos/row;//row of (pos) in container
+        }
+        public int evalLast(){
+            return position+evalSize();//row of last (pos) in container
+        }
+        public int searchById(int _pos,long id){
+            if(items.get(_pos).getId()==id){
+                return _pos;
             }
-        }
-        @SuppressWarnings("unchecked")
-        public void addToCont(Main.DBItem i){//append to container if exists, otherwise create container
-            Object val;  int n;
-            if((n=Collections.binarySearch(containers, (val=T.cast(i.getDelimiterInfo(delimID))),//BAD idk if cast needed
-                    Comparator.comparing(c -> T.isInstance(c)
-                            ? T.cast(c) : ((Container)c).info, comparator)))<0){//BAD idk if cast needed
-                containers.add(-1-n,new Container(val));
-                containers.get(-1-n).items.add(i);
-            }else{
-                containers.get(n).items.add(i);
-            }
-        }
-        @SuppressWarnings("unchecked")//find container position of row (pos) using binary search
-        public int contPosSearch(int pos){
-            int _pos=Collections.binarySearch(containers,pos,
-                    Comparator.comparingInt(c->c instanceof Integer?(int)c:((Container)c).position));
-            return (_pos<0?-2-_pos:_pos);
-        }
-        //find container position of row (pos) using nearby check
-        public int nearPosSearch(int pos,int contpos){//contpos=container position known
-            int contrealpos=containers.get(contpos).position;//pos=current wanted position
-            if (contrealpos>pos){//self explanatory
-                return contpos-1;
-            }//when next cont exists and pos is in next cont
-            if(contrealpos<pos && contpos+1<containers.size() && containers.get(contpos+1).position<=pos){
-                return contpos+1;
-            }
-            return contpos;
-        }
-        @SuppressWarnings("unchecked") //compiler can skidaddle
-        public void notifyInsert(Main.DBItem i){//also note that the code is duplicated on notifyDelete
-            Object val;//because making a function for this mess loses val output
-            int n;
-            if((n= Collections.binarySearch(containers, (val=T.cast(i.getDelimiterInfo(delimID))),//BAD idk if cast needed
-                    Comparator.comparing(c -> T.isInstance(c)
-                            ? T.cast(c): ((Container) c).info, comparator))) < 0){//BAD idk if cast needed
-                containers.add(-1-n, new Container(val));
-                containers.get(-1-n).items.add(i);
-            }else{
-                containers.get(n).items.add(Collections.binarySearch(containers.get(n).items,
-                        i,Comparator.comparing(getInfo::apply,comparator)),i);
-            }
-        }
-        @SuppressWarnings("unchecked")
-        public void notifyDelete(Main.DBItem i){
-            int n;
-            if ((n = Collections.binarySearch(containers, T.cast(i.getDelimiterInfo(delimID)),//BAD idk if cast needed
-                    Comparator.comparing(c -> T.isInstance(c)
-                            ? T.cast(c) : ((Container) c).info, comparator))) >= 0) {//BAD idk if cast needed
-                if(containers.get(n).items.size()==1 && containers.get(n).items.get(0)==i){//TODO: figure out if comparison fails
-                    containers.remove(n);
-                }else{
-                    int n2;
-                    if ((n2 = Collections.binarySearch(containers.get(n).items, i, Comparator.comparing(
-                            getInfo::apply, comparator))) >= 0) {
-                        containers.get(n).items.remove(n2);
-                    }
+            Object originInfo=getInfo.apply(items.get(_pos));
+            int pos=_pos;
+            while(pos+1<items.size()&&comparator.compare(getInfo.apply(items.get(++pos)),originInfo)==0){
+                if(items.get(pos).getId()==id){
+                    return pos;
                 }
             }
+            pos=_pos;
+            while(pos>0&&comparator.compare(getInfo.apply(items.get(--pos)),originInfo)==0){
+                if(items.get(pos).getId()==id){
+                    return pos;
+                }
+            }
+            return -1;
         }
-        public void notifyChange(Main.DBItem _old, Main.DBItem _new){notifyDelete(_old);notifyInsert(_new);}
+        public int getLowest(int _pos){
+            int pos=_pos;
+            Object originInfo=getInfo.apply(items.get(_pos));
+            while(pos+1<items.size()&&comparator.compare(getInfo.apply(items.get(++pos)),originInfo)==0){}
+            return (pos==_pos||pos==items.size()-1?pos:--pos);//bruh moment
+        }
     }
-    
-
-
-
-    DynamicNamedDB DB;
-    //boolean invert=false;
-    //int size=0; help me
-
-    int row=3;
-    //actual mental pain
-
-    //public void resetListReference(ArrayList<Object> l){ list=l;}
-    //public void setInvert(boolean n){invert=n;}
-    //public boolean getInvert(){return invert;}
-
-    public NameDBAdapter(Context context, ArrayList<Object> l){
-        super(context,l);
+    public DynamicNamedDBAdapter(Context context,int row, Class<Object> T, Class<? extends Main.DBItem> I, Comparator<Object> comp,
+                          Function<Main.DBItem,Object> getInfo, Function<Object,String> contInfoToString,
+                          String delim, Main.DBItem dummyitem){
         this.context=context;
-        this.list=l;
-        //setHasStableIds(true);
-    }
-
-    public class NameDBView extends DBView {
-        //ArrayList<CardView> cards=new ArrayList<>();
-        //ArrayList<TextView> txts=new ArrayList<>();
-        //LinearLayout linLayout;
-        //int active=0;
-        public class OnClick implements View.OnClickListener{
-            int posglobal;
-            int poslocal;
-            NameDBView db;
-            public OnClick(int pos1,int pos2, NameDBView db){
-                this.posglobal=pos1;
-                this.poslocal=pos2;
-                this.db=db; }
-            @Override
-            public void onClick(View v){
-                this.db.onClick(v,posglobal,poslocal); }
-        }
-        public NameDBView(@NonNull View itemView) {
-            super(itemView);
-            this.linLayout=(LinearLayout) itemView;
-            for(int n=0;n<row;n++){
-                cards.add((CardView)this.linLayout.getChildAt(n));
-                txts.add((TextView) cards.get(n).getChildAt(0) );
-                cards.get(n).setOnClickListener(new OnClick(n,this));
-            }
-        }
-        public void updateText(int pos){
-            this.active=0;
-            for(int n=0;n<row;n++){
-                int i=pos*row+n;
-                if(i<list.size()){
-                    txts.get(n).setText(list.get(i).toString());
-                    cards.get(n).setVisibility(View.VISIBLE);
-                    this.active+=1;
-                }else{
-                    cards.get(n).setVisibility(View.GONE);
-                }
-            }
-            this.linLayout.setWeightSum(this.active);
-        }
-        public void onClick(View v,int globalpos,int localpos){
-            int pos=getLayoutPosition();
-            pos=invert?pos-size/(separate+1)+(size-1-pos)/(separate+1)
-                    :pos-(pos)/(separate+1);
-            ((SecondActivity)context).onRecyclerClick(v, pos*row+relpos);
-        }
-    }
-    public class Separator extends RecyclerView.ViewHolder{
-        TextView text;
-        public Separator(@NonNull View itemView){
-            super(itemView);
-            text=itemView.findViewById(R.id.septext);
-        }
-        public void setText(String s){this.text.setText(s);}
+        this.row=row;
+        this.T=T;
+        this.I=I;
+        this.comparator=comp;
+        this.getInfo=getInfo;
+        this.contInfoToString=contInfoToString;
+        this.delimID=dummyitem.getDelimId(delim);//because wildcard not allowed for argument type
     }
 
 
-    public void notifyDBAppend(){
-        if(list.size()%row==1){
-            if ((getItemCount()-1)%(separate+1)==0) {
-                notifyItemRangeInserted(size-2,2);
-            }else{
-                notifyItemInserted(size-1);
-            }
-        }else{
-            notifyItemChanged(size-1);
-        }
-    }
-    public void notifyDBInsert(int n){
-        if (n<list.size()-1) {
-            int pos = n / row + n / (row*separate);
-            notifyItemRangeChanged(pos, getItemCount() - pos - (list.size() % row == 1 ? 1 : 0)
-                    - (list.size() % (row*separate) == 1 ? 1 : 0));
-        }
-        if (list.size()%row==1 || n==list.size()-1) {
-            notifyDBAppend();
-        }
-    }
-
-    //BAD ::::::::: FIX NONSENSE
-
-    //BAD: shouldnt be used without adapter
-    @SuppressWarnings("unchecked") //compiler can skidaddle
-    public void notifyInsert(Main.DBItem i){//also note that the code is duplicated on notifyDelete
-        Object val;//because making a function for this mess loses val output
-        int n;
-        if((n= Collections.binarySearch(containers, (val=T.cast(i.getDelimiterInfo(delimID))),//BAD idk if cast needed
+    //used in fromArrayList
+    public void addToCont(Main.DBItem i){//append to container if exists, otherwise create container
+        Object val;  int n;
+        if((n=Collections.binarySearch(containers, (val=T.cast(i.getDelimiterInfo(delimID))),//BAD idk if cast needed
                 Comparator.comparing(c -> T.isInstance(c)
-                        ? T.cast(c): ((Main.DynamicNamedDB.Container) c).info, comparator))) < 0){//BAD idk if cast needed
-            containers.add(-1-n, new Main.DynamicNamedDB.Container(val));
+                        ? T.cast(c) : ((Container)c).info, comparator)))<0){//BAD idk if cast needed
+            containers.add(-1-n,new Container(val));
             containers.get(-1-n).items.add(i);
         }else{
-            containers.get(n).items.add(Collections.binarySearch(containers.get(n).items,
-                    i,Comparator.comparing(getInfo::apply,comparator)),i);
+            containers.get(n).items.add(i);
         }
     }
-    //BAD: shouldnt be used without adapter
-    @SuppressWarnings("unchecked")
-    public void notifyDelete(Main.DBItem i){
+    @SuppressLint("NotifyDataSetChanged")
+    public void fromArrayList(ArrayList<Main.DBItem> _arr){//_arr remains unchanged
+        ArrayList<Main.DBItem> arr=new ArrayList<>(_arr);
+        arr.sort(Comparator.comparing(getInfo::apply,comparator));
+        Collections.reverse(arr);
+        containers=new ArrayList<>();
+        for (int i = arr.size()-1; i >-1; i--) {
+            addToCont(arr.get(i));
+            arr.remove(i);
+        }
+        notifyDataSetChanged();
+    }
+
+
+    //evaluate positions of containers
+    public void positionEval(){positionEval(0);}
+    public void positionEval(int from){
+        if (containers.size()==0){ return; }
+        int pos=(from-1<0||from-1>=containers.size() ? 0 //truly horrifying
+                : containers.get(from-1).position+1+containers.get(from-1).evalSize());
+        for (int i = from; i < containers.size(); i++) {
+            containers.get(i).position=pos;
+            pos+=1+containers.get(i).evalSize();
+        }
+    }
+
+    //find container position of row (pos) using binary search
+    public int contPosSearch(int pos){
+        int _pos=Collections.binarySearch(containers,pos,
+                Comparator.comparingInt(c->c instanceof Integer?(int)c:((Container)c).position));
+        return (_pos<0?-2-_pos:_pos);
+    }
+    //find container position of row (pos) using nearby check bruh apparently not allowed
+    public int nearPosSearch(int pos,int contpos){//contpos=container position known
+        int contrealpos=containers.get(contpos).position;//pos=current wanted position
+        if (contrealpos>pos){//self explanatory
+            return contpos-1;
+        }//when next cont exists and pos is in next cont
+        if(contrealpos<pos && contpos+1<containers.size() && containers.get(contpos+1).position<=pos){
+            return contpos+1;
+        }
+        return contpos;
+    }
+
+    public void notifyDBInsert(Main.DBItem i){//also note that the code is duplicated on notifyDelete
+        Object val;//value of i
+        int n;//position of parent container
+        if((n= Collections.binarySearch(containers, (val=T.cast(i.getDelimiterInfo(delimID))),//BAD idk if cast needed
+                Comparator.comparing(c -> T.isInstance(c)
+                        ? T.cast(c): ((Container) c).info, comparator))) < 0){//BAD idk if cast needed
+
+            containers.add(-1-n, new Container(val));
+            containers.get(-1-n).items.add(i);
+            positionEval(-1-n);
+            notifyItemRangeInserted(containers.get(-1-n).position,2);
+        }else{
+            int n2;//position inside //bruh spawn of hell below lmao
+            containers.get(n).items.add(n2=(
+                                (n2=Collections.binarySearch(containers.get(n).items, i,
+                                Comparator.comparing(getInfo::apply,comparator)))<0
+                                ? -1-n2 : containers.get(n).getLowest(n2)+1), i);
+            if (n<containers.size()-1){
+                positionEval(n+1);
+            }
+            int _size;
+            //if(insert);else(non insert)
+            if((_size=containers.get(n).items.size())%row==1){
+                if(n2!=_size-1){
+                    int _rows;
+                    notifyItemRangeChanged((_rows=containers.get(n).evalRow(n2)),
+                            containers.get(n).evalLast()-_rows);//BAD needs confirmation
+                }
+                notifyItemInserted(containers.get(n).evalLast());//BAD needs confirmation
+            }
+            else{
+                int _rows;//bruh the +1 below is fucked up
+                notifyItemRangeChanged((_rows=containers.get(n).evalRow(n2)),
+                        containers.get(n).evalLast()-_rows+1);//BAD needs confirmation
+            }
+        }
+    }
+    public void notifyDBDelete(Main.DBItem i){//BAD if multiple items have same
         int n;
         if ((n = Collections.binarySearch(containers, T.cast(i.getDelimiterInfo(delimID)),//BAD idk if cast needed
                 Comparator.comparing(c -> T.isInstance(c)
-                        ? T.cast(c) : ((Main.DynamicNamedDB.Container) c).info, comparator))) >= 0) {//BAD idk if cast needed
-            if(containers.get(n).items.size()==1 && containers.get(n).items.get(0)==i){//TODO: figure out if comparison fails
+                        ? T.cast(c) : ((Container) c).info, comparator))) >= 0) {//BAD idk if cast needed
+            if(containers.get(n).items.size()==1 && containers.get(n).items.get(0).getId()==i.getId()){//BAD idk if comparison fails
+                notifyItemRangeRemoved(containers.get(n).position,2);
                 containers.remove(n);
+                positionEval(n);
             }else{
                 int n2;
                 if ((n2 = Collections.binarySearch(containers.get(n).items, i, Comparator.comparing(
                         getInfo::apply, comparator))) >= 0) {
+                    n2=containers.get(n).searchById(n2,i.getId());
+                    int _row=containers.get(n).evalRow(n2);
+                    int _size;
+                    if((_size=containers.get(n).items.size())%row!=1){
+                        notifyItemRangeChanged(_row, containers.get(n).evalLast()-_row+1);
+                    }else{
+                        if(n2!=_size-1) {
+                            notifyItemRangeChanged(_row, containers.get(n).evalLast()-_row);
+                        }
+                        notifyItemRemoved(containers.get(n).evalLast());
+                    }
                     containers.get(n).items.remove(n2);
+                    positionEval(n+1);
                 }
             }
         }
     }
-    //BAD: shouldnt be used without adapter
-    public void notifyChange(Main.DBItem _old, Main.DBItem _new){notifyDelete(_old);notifyInsert(_new);}
+    //BAD ideally use separately in code with change handled manually to avoid item duplication
+    public void notifyChange(Main.DBItem _old, Main.DBItem _new){notifyDBDelete(_old);notifyDBInsert(_new);}
+
+    //boolean invert=false;
+    //int size=0; help me
+
+    //actual mental pain
+
+    //bruh figure out wtf is this
+    //public void resetListReference(ArrayList<Object> l){ list=l;}
+    //public void setInvert(boolean n){invert=n;}
+    //public boolean getInvert(){return invert;}
 
 
 
+    public class NameDBView extends RecyclerView.ViewHolder {
+        LinearLayout linLayout;//horizontal layout containing cards
+        ArrayList<CardView> cards=new ArrayList<>();//clickable cards containing text
+        ArrayList<TextView> txts=new ArrayList<>();//per card, get using .format()
+        int active=0;
+        int contPos;//container position inside containers
 
-
-
-    public void notifyDBDelete(int n) {
-        if (list.size() % row == 0) {
-            notifyItemRangeRemoved(getItemCount(), ((list.size() + 1) % row == 1 ? 1 : 0)
-                    + ((list.size() + 1) % (row*separate) == 1 ? 1 : 0));
+        public class OnClick implements View.OnClickListener{//bruh truly horrible
+            int inContPos;//position inside container
+            NameDBView db;//to be able to call OnClick in db
+            public OnClick(int inContPos, NameDBView db){
+                this.inContPos=inContPos;
+                this.db=db; }
+            @Override
+            public void onClick(View v){ db.onClick(v,inContPos); }
         }
-        if (n < list.size()||list.size()%3!=0) {
-            int pos = n / row + n / (row*separate);
-            notifyItemRangeChanged(pos, getItemCount() - pos);
+        public NameDBView(@NonNull View view) {//init linear layout with empty cards
+            super(view);
+            this.linLayout=(LinearLayout) view;
+            for(int n=0;n<row;n++){
+                cards.add((CardView)this.linLayout.getChildAt(n));
+                txts.add((TextView) cards.get(n).getChildAt(0) );
+            }
+        }
+        public void updateText(int contPos,int inContRow){//fill in cards and add onClick
+            this.contPos=contPos;
+            active=0;
+            int posOffset=inContRow*row;
+            for(int n=0;n<row;n++){
+                int i=posOffset+n;
+                if(i<containers.get(contPos).items.size()){
+                    txts.get(n).setText(containers.get(contPos).items.get(i).format(format));
+                    cards.get(n).setVisibility(View.VISIBLE);
+                    cards.get(n).setOnClickListener(new OnClick(i,this));
+                    active+=1;//bruh there is better way to get active but i cant be bothered
+                }else{
+                    cards.get(n).setVisibility(View.GONE);
+                }
+            }
+            linLayout.setWeightSum(active);
+        }
+        public void onClick(View v,int inContPos){
+            ((SecondActivity)context).onRecyclerClick(v,
+                    containers.get(contPos).position+inContPos);
         }
     }
-    public void notifyDBInvert(){ //pointless because invert already does notifyDataChanged()
-        int lim=getItemCount()/(separate+1);
-        for(int n=(invert?lim:1);n!=(invert?0:lim+1);n+=(invert?-1:1)){
-            notifyItemRemoved(invert?n*(separate+1)-1:getItemCount()-n*(separate+1));
+    public class Separator extends RecyclerView.ViewHolder{
+        TextView text; //bruh supposed to have click functionality but cant be bothered for now
+        public Separator(@NonNull View itemView){
+            super(itemView);
+            text=itemView.findViewById(R.id.septext);
         }
-        for(int n=(invert?1:lim);n!=(invert?lim+1:0);n+=(invert?1:-1)){
-            notifyItemInserted(invert?(list.size()-1)/row+1-n*(separate):n*(separate));
-        }
+        public void setText(int contPos){this.text.setText(containers.get(contPos).getLabel());}
     }
+
+
+
+
+
     @Override
     public int getItemViewType(int position) {
+        myRecyclerView.findViewHolderForAdapterPosition(pos);
         return (((invert?1:0)*(size-1)-(invert?1:-1)*position)%(separate+1))/separate;
     }
     @Override
