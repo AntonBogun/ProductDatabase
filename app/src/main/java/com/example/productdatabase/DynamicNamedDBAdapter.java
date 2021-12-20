@@ -22,6 +22,7 @@ import java.util.Comparator;
 public class DynamicNamedDBAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     Context context;
     int row=3; //items PER row
+    int invert=0;//0 or 1, inverts obviously
 
     public Class<?> T;
     public Class<? extends Main.DBItem> I;
@@ -142,16 +143,16 @@ public class DynamicNamedDBAdapter extends RecyclerView.Adapter<RecyclerView.Vie
         return (_pos<0?-2-_pos:_pos);
     }
     //find container position of row (pos) using nearby check bruh apparently not allowed
-    public int nearPosSearch(int pos,int contpos){//contpos=container position known
-        int contrealpos=containers.get(contpos).position;//pos=current wanted position
-        if (contrealpos>pos){//self explanatory
-            return contpos-1;
-        }//when next cont exists and pos is in next cont
-        if(contrealpos<pos && contpos+1<containers.size() && containers.get(contpos+1).position<=pos){
-            return contpos+1;
-        }
-        return contpos;
-    }
+//    public int nearPosSearch(int pos,int contpos){//contpos=container position known
+//        int contrealpos=containers.get(contpos).position;//pos=current wanted position
+//        if (contrealpos>pos){//self explanatory
+//            return contpos-1;
+//        }//when next cont exists and pos is in next cont
+//        if(contrealpos<pos && contpos+1<containers.size() && containers.get(contpos+1).position<=pos){
+//            return contpos+1;
+//        }
+//        return contpos;
+//    }
 
     public void notifyDBInsert(Main.DBItem i){//also note that the code is duplicated on notifyDelete
         Object val;//value of i
@@ -292,21 +293,36 @@ public class DynamicNamedDBAdapter extends RecyclerView.Adapter<RecyclerView.Vie
 
 
 
-
+    public void notifyInvert(int invert){
+        if(this.invert!=invert){
+            notifyDataSetChanged();//bruh can not be bothered
+        }
+        this.invert=invert;
+    }
 
     @Override
     public int getItemViewType(int position) {
-        myRecyclerView.findViewHolderForAdapterPosition(pos);
-        return (((invert?1:0)*(size-1)-(invert?1:-1)*position)%(separate+1))/separate;
+        int cont;
+        return (invert==0?(containers.get(contPosSearch(position)).position==position?1:0)
+        :(containers.get(contPosSearch(position)).evalLast()==position?1:0));
     }
     @Override
     public int getItemCount() {
-        size= list == null ? 0 : (list.size()-1)/row+1+(list.size()-1)/(row*separate);
-        return size;
+        if(containers.size()==0){
+            return 0;
+        }
+        else{
+            return containers.get(containers.size()-1).evalLast();
+        }
     }
+
+    @NonNull
     @Override
-    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        if (viewType==0){
+    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent,int viewType) {
+        if(viewType==1){
+            View view=LayoutInflater.from(context).inflate(R.layout.separator,parent,false);
+            return new Separator(view);
+        }else{
             LinearLayout linLayout = (LinearLayout)LayoutInflater.from(context).inflate(R.layout.recycle_view, parent, false);
             for(int n=0;n<row;n++){
                 View view=LayoutInflater.from(context).inflate(R.layout.card_contain, parent, false);
@@ -318,23 +334,18 @@ public class DynamicNamedDBAdapter extends RecyclerView.Adapter<RecyclerView.Vie
             }
             linLayout.setWeightSum(row);
             return new NameDBView(linLayout);
-        }else{
-            View view =LayoutInflater.from(context).inflate(R.layout.separator, parent, false);
-            return new Separator(view);
         }
-
     }
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-        getItemCount();
-        if (holder instanceof NameDBView){
-            int adjustedpos=invert?position-size/(separate+1)+(size-1-position)/(separate+1)
-                    :position-(position)/(separate+1);
-            NameDBView d=(NameDBView)holder;
-            d.updateText(adjustedpos);
-        }else{
-            ((Separator)holder).setText(String.valueOf(invert?((size-position)/(separate+1))*(row*separate)
-                    :((position+1)/(separate+1))*(row*separate)));
+        int cont=contPosSearch(position);
+        if(holder instanceof Separator){
+            ((Separator)holder).setText(cont);
+        }else{//bruh chef's kiss below
+            Container Cont=containers.get(cont);
+            ((NameDBView)holder).updateText(cont, (invert==0? Cont.evalRow(position)
+        :Cont.evalLast() + Cont.position - Cont.evalRow(position)));
         }
+
     }
 }

@@ -89,6 +89,35 @@ public class Main extends android.app.Application{
             return dd.toString().replace(",","ධ");
         }
     }
+    public static <T> String format(@Nullable String s, Class<T> _class,T _obj,String _deflt,String _pattern,
+                                Function<String,String> _afterReplace){
+        if(s==null){s="%name%";}
+        try {
+            Pattern p=Pattern.compile("%(-?\\d+(?:.\\d+)?)?("+_pattern+")?([/*])(-?\\d+(?:.\\d+)?)?("+_pattern+")?%");
+            Matcher m=p.matcher(s);
+            while(m.find()){
+                //number left/right
+                float nleft=m.group(1)==null?1:Float.parseFloat(m.group(1));
+                float nright=m.group(4)==null?1:Float.parseFloat(m.group(4));
+                //property left/right
+                float pleft=m.group(2)==null?1:_class.getDeclaredField(m.group(2)).getFloat(_obj);
+                float pright=m.group(5)==null?1:_class.getDeclaredField(m.group(5)).getFloat(_obj);
+                if(nleft==-1 ||nright==-1||pleft==-1||pright==-1){
+                    s.replaceFirst(m.group(0),"-1"); //-1 propagates
+                }
+                s.replaceFirst(m.group(0),String.valueOf(
+                        nleft*pleft*(m.group(3)=="/"?1/nright/pright:nright*pright)
+                ));
+                m=p.matcher(s);
+            }
+        }catch(Exception e){
+            e.printStackTrace();
+            Log.e(R.class.getName(),"product:format got inexplicably bruhed");
+            return s;
+        }
+
+        return _afterReplace.apply(s);
+    }
 
     public static abstract class DBItem{
         public abstract String format(@Nullable String s);
@@ -102,9 +131,10 @@ public class Main extends android.app.Application{
 
         //String s=StringUtils.replace();
     }
-//    public class Purchase extends DBItem{
-//
-//    } BAD ghfjkdhgfjdklwkjfgjfoewierugfieoweirutrieow
+    public class Purchase extends DBItem{
+        public long id;
+        public lon
+    }
     public static class Product extends DBItem{
         public long id;
         public long getId(){return id;}
@@ -151,31 +181,43 @@ public class Main extends android.app.Application{
 
         //public ArrayList<Purchase> purchases=new ArrayList<>();//BAD MAKE
 
-    public String format(@NonNull String s){
-            try {
-                Pattern p=Pattern.compile("%(-?\\d+(?:.\\d+)?)?(kcal|price|gpp)?([/*])(-?\\d+(?:.\\d+)?)?(kcal|price|gpp)?%");
-                Matcher m=p.matcher(s);
-                while(m.find()){
-                    //number left/right
-                    float nleft=m.group(1)==null?1:Float.parseFloat(m.group(1));
-                    float nright=m.group(4)==null?1:Float.parseFloat(m.group(4));
-                    //property left/right
-                    float pleft=m.group(2)==null?1:Product.class.getDeclaredField(m.group(2)).getFloat(this);
-                    float pright=m.group(5)==null?1:Product.class.getDeclaredField(m.group(5)).getFloat(this);
-                    if(nleft==-1 ||nright==-1||pleft==-1||pright==-1){
-                        s.replaceFirst(m.group(0),"-1"); //-1 propagates
-                    }
-                    s.replaceFirst(m.group(0),String.valueOf(
-                            nleft*pleft*(m.group(3)=="/"?1/nright/pright:nright*pright)
-                    ));
-                    m=p.matcher(s);
-                }
-                return s;
-            }catch(Exception e){
-                e.printStackTrace();
-                Log.e(R.class.getName(),"product:format got inexplicably bruhed");
-                return s;
-            }
+//    public String format(@Nullable String s){
+//        if(s==null){s="%name%";}
+//            try {
+//                Pattern p=Pattern.compile("%(-?\\d+(?:.\\d+)?)?(kcal|price|gpp)?([/*])(-?\\d+(?:.\\d+)?)?(kcal|price|gpp)?%");
+//                Matcher m=p.matcher(s);
+//                while(m.find()){
+//                    //number left/right
+//                    float nleft=m.group(1)==null?1:Float.parseFloat(m.group(1));
+//                    float nright=m.group(4)==null?1:Float.parseFloat(m.group(4));
+//                    //property left/right
+//                    float pleft=m.group(2)==null?1:Product.class.getDeclaredField(m.group(2)).getFloat(this);
+//                    float pright=m.group(5)==null?1:Product.class.getDeclaredField(m.group(5)).getFloat(this);
+//                    if(nleft==-1 ||nright==-1||pleft==-1||pright==-1){
+//                        s.replaceFirst(m.group(0),"-1"); //-1 propagates
+//                    }
+//                    s.replaceFirst(m.group(0),String.valueOf(
+//                            nleft*pleft*(m.group(3)=="/"?1/nright/pright:nright*pright)
+//                    ));
+//                    m=p.matcher(s);
+//                }
+//            }catch(Exception e){
+//                e.printStackTrace();
+//                Log.e(R.class.getName(),"product:format got inexplicably bruhed");
+//                return s;
+//            }
+//
+//            return s.replace("%id%",String.valueOf(id))
+//                    .replace("%name%",name)
+//                    .replace("%description%",description)
+//                    .replace("%DD%",DD.toString());
+//        }
+        public String format(@Nullable String s){
+            return Main.format(s,Product.class,this,"%name%","kcal|price|gpp",
+                    (S->S.replace("%id%",String.valueOf(id))
+                            .replace("%name%",name)
+                            .replace("%description%",description)
+                            .replace("%DD%",DD.toString())));
         }
         public String save(){
             return String.format("%dඞ%sඞ%fඞ%fඞ%fඞ%sඞ%s",id,name,kcal,price,gpp,DD.save(),description);
@@ -194,6 +236,10 @@ public class Main extends android.app.Application{
         }
         public Product(){}//for ""static"" methods
     }
+
+
+
+
 
     public interface DBItemAdapter<T,I extends DBItem>{
         public T getInfo(I item);
