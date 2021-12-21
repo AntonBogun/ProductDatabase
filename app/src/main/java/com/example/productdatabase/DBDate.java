@@ -8,13 +8,12 @@ import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
-public class Date {
-
-
+public class DBDate {
     static Calendar currentTime = getInstance();
     static SimpleDateFormat dateformat = new SimpleDateFormat("ss/mm/HH/dd/MM/yyyy<Z");
 
@@ -24,10 +23,10 @@ public class Date {
         //java.util.Date date=getInstance().getTime();
         return dateformat.format(Calendar.getInstance().getTime());
     }
-    public static java.util.Date getDate(){
+    public static Date getDate(){
         return Calendar.getInstance().getTime();
     }
-    public static java.util.Date toDate(String s) {
+    public static Date toDate(String s) {
         try {
             return dateformat.parse(s);
 
@@ -36,7 +35,7 @@ public class Date {
             return getInstance().getTime();
         }
     }
-    public static String toString(java.util.Date d){
+    public static String toString(Date d){
         return dateformat.format(d);
     }
 }
