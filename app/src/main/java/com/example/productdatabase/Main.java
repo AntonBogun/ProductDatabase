@@ -10,6 +10,7 @@ import androidx.annotation.Nullable;
 import androidx.arch.core.util.Function;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DateUtils;
 
 import java.lang.reflect.*;
 import java.util.*;
@@ -66,16 +67,16 @@ public class Main extends android.app.Application{
 //            this.flax=flax;this.nut=nut;this.grain=grain;this.spice=spice;
         }
         public DD(){dd=new ArrayList<>(Collections.nCopies(9, (float) 0));}
-        public DD(String s){//ධධධධධධධධධධධධධධධධv🧂🧂🧂
+        public DD(String s){//1ධ3ධ5ධ6ධ7ධ8ධ9ධ1ධ2ධ3ධ4ධ5ධ6ධ7ධධධv🧂🧂🧂
             dd= Arrays.stream(s.replaceAll("[|]", "").split("ධ")).
                     map(Float::valueOf).collect(Collectors.toCollection(ArrayList::new));//cursed
             //dd=new ArrayList<>(Arrays.stream(s.replaceAll("[|]","").split("ධ")).map(Float::valueOf).collect(Collectors.toList()));
 
             // dd=new ArrayList<Float>(Arrays.asList(Arrays.stream(s.replaceAll("[|]","").split("ධ")).map(Float::valueOf).toArray(Float[]::new)));
         }
-        //🫘🫐🍎🥬🥕🌾🌰🍞🧂
+        //bruh the beans are unavailable🫘🫐🍎🥬🥕🌾🌰🍞🧂
         public String toString(){
-            return ((dd.get(0)==0?"":"\uD83E\uDED8"+dd.get(0)+" ")+
+            return ((dd.get(0)==0?"":"\uD83C\uDF31"+dd.get(0)+" ")+//bruh for now use 🌱
                     (dd.get(1)==0?"":"\uD83E\uDED0"+dd.get(1)+" ")+
                     (dd.get(2)==0?"":"\uD83C\uDF4E"+dd.get(2)+" ")+
                     (dd.get(3)==0?"":"\uD83E\uDD6C"+dd.get(3)+" ")+
@@ -89,35 +90,34 @@ public class Main extends android.app.Application{
             return dd.toString().replace(",","ධ");
         }
     }
-    public static <T> String format(@Nullable String s, Class<T> _class,T _obj,String _deflt,String _pattern,
-                                Function<String,String> _afterReplace){
-        if(s==null){s="%name%";}
-        try {
-            Pattern p=Pattern.compile("%(-?\\d+(?:.\\d+)?)?("+_pattern+")?([/*])(-?\\d+(?:.\\d+)?)?("+_pattern+")?%");
-            Matcher m=p.matcher(s);
-            while(m.find()){
-                //number left/right
-                float nleft=m.group(1)==null?1:Float.parseFloat(m.group(1));
-                float nright=m.group(4)==null?1:Float.parseFloat(m.group(4));
-                //property left/right
-                float pleft=m.group(2)==null?1:_class.getDeclaredField(m.group(2)).getFloat(_obj);
-                float pright=m.group(5)==null?1:_class.getDeclaredField(m.group(5)).getFloat(_obj);
-                if(nleft==-1 ||nright==-1||pleft==-1||pright==-1){
-                    s.replaceFirst(m.group(0),"-1"); //-1 propagates
-                }
-                s.replaceFirst(m.group(0),String.valueOf(
-                        nleft*pleft*(m.group(3)=="/"?1/nright/pright:nright*pright)
-                ));
-                m=p.matcher(s);
-            }
-        }catch(Exception e){
-            e.printStackTrace();
-            Log.e(R.class.getName(),"product:format got inexplicably bruhed");
-            return s;
-        }
-
-        return _afterReplace.apply(s);
-    }
+//    public static <T> String format(@Nullable String s, Class<T> _class,T _obj,String _deflt,String _pattern,
+//                                Function<String,String> _afterReplace){
+//        if(s==null){s="%name%";}
+//        try {
+//            Pattern p=Pattern.compile("%(-?\\d+(?:\\.\\d+)?)?("+_pattern+")?([/*])(-?\\d+(?:\\.\\d+)?)?("+_pattern+")?%");
+//            Matcher m=p.matcher(s);
+//            while(m.find()){
+//                //number left/right
+//                float nleft=m.group(1)==null?1:Float.parseFloat(m.group(1));
+//                float nright=m.group(4)==null?1:Float.parseFloat(m.group(4));
+//                //property left/right
+//                float pleft=m.group(2)==null?1:_class.getDeclaredField(m.group(2)).getFloat(_obj);
+//                float pright=m.group(5)==null?1:_class.getDeclaredField(m.group(5)).getFloat(_obj);
+//                if(nleft==-1 ||nright==-1||pleft==-1||pright==-1){
+//                    s=m.replaceFirst("-1"); //-1 propagates
+//                }
+//                s=m.replaceFirst(String.format(Locale.US,"%.2f",
+//                        nleft*pleft*(m.group(3)=="/"?1/nright/pright:nright*pright) ));
+//                m=p.matcher(s);
+//            }
+//        }catch(Exception e){
+//            e.printStackTrace();
+//            Log.e(R.class.getName(),"product:format got inexplicably bruhed");
+//            return s;
+//        }
+//
+//        return _afterReplace.apply(s);
+//    }
 
     public static abstract class DBItem{
         public abstract String format(@Nullable String s);
@@ -135,36 +135,140 @@ public class Main extends android.app.Application{
         public long id;
         public long productId;
         protected Product _product;
-
+        @Override
         public long getId(){return id;}
         public enum ID{
-            PIECES(0),DISCOUNT(1),DATE(2),EXPIRY(3);
+            PIECES(0),DISCOUNT(1),DATE(2),EXPIRY(3),SCORE(4);
             public final int value;
             ID(int i){
                 value=i;
             }
         }
+        @Override
         public int getDelimId(String s){
             return ID.valueOf(s.toUpperCase()).value;
         }
+        @Override
+        public Object getDelimiterInfo(int id){
+            switch (id){
+                case 0: //i hate java enum
+                    return (pieces==-1?-1:(float)Math.floor(pieces));//bruh imagine sorting by pieces
+                case 1:
+                    return (discount==-1?-1:(float)(Math.floor(discount*10)/10));//bruh awful
+                case 2:
+                    return (DateUtils.truncate(date,Calendar.DATE));
+                case 3:
+                    return (DateUtils.truncate(expiry,Calendar.DATE));
+                case 4:
+                    return (score==-1?-1:(float)(Math.floor(score)));
+                default:
+                    return new Object();//not supposed to happen
+            }
+        }
         public float pieces;
-        public float discount;
+        public float discount;//ratio of normal price (eg 0.5)
 
+        public float score;//0-10, -1 unset
+        public int gone;
         public Date date;//of purchase
         public Date expiry;
 
         public String note;
-
+        //bruh add ignore null later
+        @Override
         public String format(@Nullable String s){
-            return Main.format(s,Purchase.class,this,"%pieces*1%");
+            if(s==null){s="%name%";}
+            try {
+                Pattern p=Pattern.compile("%(id|name|description|DD|score|lscore|lid|ldate [^%]+|lexpiry .+)%");
+                Matcher m=p.matcher(s);
+                while(m.find()){
+                    String _value;
+                    if(m.group(1).charAt(0)=='l'){
+                        if(m.group(1).startsWith("ldate")||m.group(1).startsWith("lexpiry")){
+                            String[] _s=m.group(1).split(" ",2);
+                            Date _d=(Date)Purchase.class.getDeclaredField(_s[0].substring(1)).get(this);
+                            try{
+                                _value=DBDate.toReadableString(_d,(_s.length==1?null:_s[1]));
+                            }catch(Exception e){
+                                //e.printStackTrace();
+                                Log.e(R.class.getName(),"bad date");
+                                _value=DBDate.toReadableString(_d,null);
+                            }
+                        }else {
+                            _value = String.valueOf(Purchase.class.getDeclaredField(m.group(1).substring(1)).get(this));
+                        }
+                    } else if(m.group(1).equals("score")){
+                        _value=String.valueOf(_product.getScore());
+                    } else{
+                        _value=String.valueOf(Product.class.getDeclaredField(m.group(1)).get(_product));
+                    }
+                    s=m.replaceFirst(_value);
+                    m=p.matcher(s);
+                }
+            }catch(Exception e){
+                e.printStackTrace();
+                Log.e(R.class.getName(),"product:property format got inexplicably bruhed");
+                return s;
+            }
+            try {
+                Pattern p=Pattern.compile("%(-?\\d+(?:\\.\\d+)?)?(kcal|price|gpp|kcalpprice|lpieces|ldiscount)?" +
+                        "([/*])(-?\\d+(?:\\.\\d+)?)?(kcal|price|gpp|kcalpprice|lpieces|ldiscount)?%");
+                Matcher m=p.matcher(s);
+                while(m.find()){
+                    //number left/right
+                    float nleft=m.group(1)==null?1:Float.parseFloat(m.group(1));
+                    float nright=m.group(4)==null?1:Float.parseFloat(m.group(4));
+                    //property left/right
+                    float pleft;
+                    if(m.group(2)==null){pleft=1;}else{
+                        if(m.group(2).charAt(0)=='l'){
+                            pleft=Purchase.class.getDeclaredField(m.group(2).substring(1)).getFloat(this);
+                        }else {
+                            if (!m.group(2).equals("kcalpprice")) {
+                                pleft = Product.class.getDeclaredField(m.group(2)).getFloat(_product);
+                            } else {
+                                pleft = _product.getKcalPPrice();
+                            }
+                        }
+                    }
+                    float pright;
+                    if(m.group(5)==null){pright=1;}else{
+                        if(m.group(5).charAt(0)=='l'){
+                            pright=Purchase.class.getDeclaredField(m.group(5).substring(1)).getFloat(this);
+                        }else {
+                            if (!m.group(5).equals("kcalpprice")) {
+                                pright = Product.class.getDeclaredField(m.group(5)).getFloat(_product);
+                            } else {
+                                pright = _product.getKcalPPrice();
+                            }
+                        }
+                    }
+                    if(nleft==-1 ||nright==-1||pleft==-1||pright==-1){
+                        s=m.replaceFirst("-1"); //-1 propagates
+                    }
+                    s=m.replaceFirst(String.format(Locale.US,"%.2f",
+                            nleft*pleft*(m.group(3).equals("/") ?1/nright/pright:nright*pright)
+                    ));
+                    m=p.matcher(s);
+                }
+                return s;
+            }catch(Exception e){
+                e.printStackTrace();
+                Log.e(R.class.getName(),"product:float format got inexplicably bruhed");
+                return s;
+            }
         }
+        @Override
+        public String save(){//                         1   2  3  4  5   6  7  8
+            return String.format(Locale.ENGLISH,"%dඞ%dඞ%fඞ%fඞ%sඞ%sඞ%fඞ%s",id,productId,pieces,discount,
+                    DBDate.toString(date),DBDate.toString(expiry),score,note);
+        }//bruh put locale everywhere later
 
-        public String save(){
-            return String.format("%dඞ%fඞ%fඞ%sඞ%sඞ%s",id,pieces,discount,DBDate.toString(date),DBDate.toString(expiry),note);
-        }
+
     }
     public static class Product extends DBItem{
         public long id;
+        @Override
         public long getId(){return id;}
         public String name;
 
@@ -176,9 +280,11 @@ public class Main extends android.app.Application{
             }
         }
         //protected enum delimiters{}
+        @Override
         public int getDelimId(String s){
             return ID.valueOf(s.toUpperCase()).value;
         }
+        @Override
         public Object getDelimiterInfo(int id){
             switch (id){
                 case 0: //i hate java enum
@@ -207,40 +313,70 @@ public class Main extends android.app.Application{
         public DD DD;
         public String description;
 
-        //public ArrayList<Purchase> purchases=new ArrayList<>();//BAD MAKE
-
-    public String format(@Nullable String s){
-        if(s==null){s="%name%";}
+        protected float score;
+        public ArrayList<Purchase> purchases;
+        public float getScore(){return score;}
+        public void setScore(float score){this.score=score;}
+        @Override
+        public String format(@Nullable String s){
+            if(s==null){s="%name%";}
             try {
-                Pattern p=Pattern.compile("%(-?\\d+(?:.\\d+)?)?(kcal|price|gpp|kcalpprice)?([/*])" +
-                        "(-?\\d+(?:.\\d+)?)?(kcal|price|gpp|kcalpprice)?%");
+                Pattern p=Pattern.compile("%(id|name|description|DD|score)%");
+                Matcher m=p.matcher(s);
+                while(m.find()){
+                    String _value;
+                    if(m.group(1).equals("score")){_value=String.valueOf(getScore());}else{
+                        _value=String.valueOf(Product.class.getDeclaredField(m.group(1)).get(this));
+                    }
+                    s=m.replaceFirst(_value);
+                    m=p.matcher(s);
+                }
+            }catch(Exception e){
+                e.printStackTrace();
+                Log.e(R.class.getName(),"product:property format got inexplicably bruhed");
+                return s;
+            }
+
+            try {
+                Pattern p=Pattern.compile("%(-?\\d+(?:\\.\\d+)?)?(kcal|price|gpp|kcalpprice)?" +
+                        "([/*])(-?\\d+(?:\\.\\d+)?)?(kcal|price|gpp|kcalpprice)?%");
                 Matcher m=p.matcher(s);
                 while(m.find()){
                     //number left/right
                     float nleft=m.group(1)==null?1:Float.parseFloat(m.group(1));
                     float nright=m.group(4)==null?1:Float.parseFloat(m.group(4));
                     //property left/right
-                    float pleft=m.group(2)==null?1:Product.class.getDeclaredField(m.group(2)).getFloat(this);
-                    float pright=m.group(5)==null?1:Product.class.getDeclaredField(m.group(5)).getFloat(this);
-                    if(nleft==-1 ||nright==-1||pleft==-1||pright==-1){
-                        s.replaceFirst(m.group(0),"-1"); //-1 propagates
+                    float pleft;
+                    if(m.group(2)==null){pleft=1;}else{
+                    if(!m.group(2).equals("kcalpprice")) {
+                        pleft = Product.class.getDeclaredField(m.group(2)).getFloat(this);
+                    }else{
+                        pleft=getKcalPPrice();
                     }
-                    s.replaceFirst(m.group(0),String.valueOf(
-                            nleft*pleft*(m.group(3)=="/"?1/nright/pright:nright*pright)
+                    }
+                    float pright;
+                    if(m.group(5)==null){pright=1;}else{
+                        if(!m.group(5).equals("kcalpprice")) {
+                            pright = Product.class.getDeclaredField(m.group(5)).getFloat(this);
+                        }else{
+                            pright=getKcalPPrice();
+                        }
+                    }
+                    if(nleft==-1 ||nright==-1||pleft==-1||pright==-1){
+                        s=m.replaceFirst("-1"); //-1 propagates
+                    }
+                    s=m.replaceFirst(String.format(Locale.US,"%.3f",
+                            nleft*pleft*(m.group(3).equals("/") ?1/nright/pright:nright*pright)
                     ));
                     m=p.matcher(s);
                 }
+                return s;
             }catch(Exception e){
                 e.printStackTrace();
-                Log.e(R.class.getName(),"product:format got inexplicably bruhed");
+                Log.e(R.class.getName(),"product:float format got inexplicably bruhed");
                 return s;
             }
-
-            return s.replace("%id%",String.valueOf(id))
-                    .replace("%name%",name)
-                    .replace("%description%",description)
-                    .replace("%DD%",DD.toString());
-        }
+            }
 //        public String format(@Nullable String s){
 //            return Main.format(s,Product.class,this,"%name%","kcal|price|gpp",
 //                    (S->S.replace("%id%",String.valueOf(id))
@@ -248,6 +384,7 @@ public class Main extends android.app.Application{
 //                            .replace("%description%",description)
 //                            .replace("%DD%",DD.toString())));
 //        }
+        @Override
         public String save(){
             return String.format("%dඞ%sඞ%fඞ%fඞ%fඞ%sඞ%s",id,name,kcal,price,gpp,DD.save(),description);
         }
@@ -265,137 +402,5 @@ public class Main extends android.app.Application{
         }
         public Product(){}//for ""static"" methods
     }
-
-
-
-
-
-    public interface DBItemAdapter<T,I extends DBItem>{
-        public T getInfo(I item);
-    }
-    public class NamedDB<T,I extends DBItem>{
-        int rows=1; //items PER row
-        public String format=null;
-        protected ArrayList<Container> containers=new ArrayList<>();
-        public final Comparator<T> comparator;
-        public final Class<T> t;
-        public final Function<T,String> contInfoToString;//display
-        public final Function<I,T> getInfo;//adapter
-        public final int delimID;//delimiter ID for DBItem
-        //TODO: looks fine
-        public class Container{
-            T info;
-            ArrayList<I> items;
-            int position;
-            public Container(T info, ArrayList<I>items) {
-                this.info=info;
-                this.items=items;
-            }
-            public Container(T info){
-                this.info=info;
-                this.items=new ArrayList<I>();
-            }
-            public String getLabel(){
-                return contInfoToString.apply(info);
-            }
-            public int evalSize(int rows){
-                if (items.size()==0){return 0;}
-                return ((items.size()-1)/rows)+1;
-            }
-        }
-        public NamedDB(int rows,Class<T>t, Comparator<T> comp, Function<I,T> getInfo,
-                       Function<T,String> contInfoToString,String delim,I dummyitem){
-            this.rows=rows;
-            this.t=t;
-            this.comparator=comp;
-            this.getInfo=getInfo;
-            this.contInfoToString=contInfoToString;
-            this.delimID=dummyitem.getDelimId(delim);//I hate java's static/abstract exclusivity
-        }
-        public void fromArrayList(ArrayList<I> _arr){//_arr remains unchanged
-            ArrayList<I> arr=new ArrayList<>(_arr);
-            arr.sort(Comparator.comparing(getInfo::apply, comparator));
-            Collections.reverse(arr);
-            for (int i = arr.size()-1; i >-1; i--) {
-                addToCont(arr.get(i));
-                arr.remove(i);
-            }
-        }
-
-
-        //initialize positions of containers
-        public void positionEval(){
-            if (containers.size()==0){ return; }
-            int pos=0;
-            for (int i = 0; i < containers.size(); i++) {
-                containers.get(i).position=pos;
-                pos+=1+containers.get(i).evalSize(rows);
-            }
-        }
-        @SuppressWarnings("unchecked")
-        public void addToCont(I i){//append to container if exists, otherwise create container
-            T val;  int n;
-            if((n=Collections.binarySearch(containers, (val=(T)i.getDelimiterInfo(delimID)),
-                    Comparator.comparing(c->t.isInstance(c)?(T)c:((Container)c).info,comparator)))<0){
-                containers.add(-1-n,new Container(val));
-                containers.get(-1-n).items.add(i);
-            }else{
-                containers.get(n).items.add(i);
-            }
-        }
-        @SuppressWarnings("unchecked")//find container position of row (pos) using binary search
-        public int contPosSearch(int pos){
-            int _pos=Collections.binarySearch(containers,pos,
-                    Comparator.comparingInt(c->c instanceof Integer?(int)c:((Container)c).position));
-            return (_pos<0?-2-_pos:_pos);
-        }
-        //find container position of row (pos) using nearby check
-        public int nearPosSearch(int pos,int contpos){//contpos=container position known
-            int contrealpos=containers.get(contpos).position;//pos=current wanted position
-            if (contrealpos>pos){//self explanatory
-                return contpos-1;
-            }//when next cont exists and pos is in next cont
-            if(contrealpos<pos && contpos+1<containers.size() && containers.get(contpos+1).position<=pos){
-                return contpos+1;
-            }
-            return contpos;
-        }
-        //BAD: shouldnt be used without adapter
-        @SuppressWarnings("unchecked") //compiler can skidaddle
-        public void notifyInsert(I i){//also note that the code is duplicated on notifyDelete
-            T val;//because making a function for this mess loses val output
-            int n;
-            if((n= Collections.binarySearch(containers, (val=(T)i.getDelimiterInfo(delimID)),
-                    Comparator.comparing(c -> t.isInstance(c)
-                            ? (T) c: ((Container) c).info, comparator))) < 0){
-                containers.add(-1-n,new Main.NamedDB.Container(val));
-                containers.get(-1-n).items.add(i);
-            }else{
-                containers.get(n).items.add(Collections.binarySearch(containers.get(n).items,
-                        i,Comparator.comparing(getInfo::apply,comparator)),i);
-            }
-        }
-        //BAD: shouldnt be used without adapter
-        @SuppressWarnings("unchecked")
-        public void notifyDelete(I i){
-            int n;
-            if ((n = Collections.binarySearch(containers, (T) i.getDelimiterInfo(delimID),
-                    Comparator.comparing(c -> t.isInstance(c)
-                            ? (T) c : ((Container) c).info, comparator))) >= 0) {
-                if(containers.get(n).items.size()==1 && containers.get(n).items.get(0)==i){//TODO: figure out if comparison fails
-                    containers.remove(n);
-                }else{
-                    int n2;
-                    if ((n2 = Collections.binarySearch(containers.get(n).items, i, Comparator.comparing(
-                            getInfo::apply, comparator))) >= 0) {
-                        containers.get(n).items.remove(n2);
-                    }
-                }
-            }
-        }
-        //BAD: shouldnt be used without adapter
-        public void notifyChange(I _old, I _new){notifyDelete(_old);notifyInsert(_new);}
-    }
-
 }
 
